@@ -1,43 +1,47 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Rectangle
+from kivy.uix.textinput import TextInput
+from kivy.uix.scrollview import ScrollView
 import os
 
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Main horizontal layout
-        main_layout = BoxLayout(orientation='horizontal', padding=10, spacing=10)
+        # Layout principal horizontal
+        main_layout = BoxLayout(orientation='horizontal', spacing=10)
 
-        # Vertical layouts for left and right
-        left_layout = BoxLayout(orientation='vertical', size_hint_x=0.3, padding=10, spacing=10)
-        right_layout = BoxLayout(orientation='vertical', size_hint_x=0.7, padding=10, spacing=10)
+        # Layouts verticais para a esquerda e direita
+        left_layout = BoxLayout(orientation='vertical', size_hint_x=0.35, padding=10, spacing=10)
+        # Agora o right_layout é um GridLayout com 2 linhas
+        right_layout = GridLayout(cols=1, rows=2, size_hint_x=0.7, padding=10, spacing=10)
 
-        # Add layouts to main layout
+        # Adiciona os layouts ao layout principal
         main_layout.add_widget(left_layout)
         main_layout.add_widget(right_layout)
 
-        # Add main layout to screen
+        # Adiciona o layout principal à tela
         self.add_widget(main_layout)
 
-        # Background for left_layout
+        # Fundo para o left_layout
         with left_layout.canvas.before:
             Color(0.9, 0.9, 0.9, 1) 
             self.left_rect = Rectangle(size=left_layout.size, pos=left_layout.pos)
         left_layout.bind(size=self._update_left_rect, pos=self._update_left_rect)
 
-        # Background for right_layout
+        # Fundo para o right_layout
         with right_layout.canvas.before:
             Color(1, 1, 1, 1) 
             self.right_rect = Rectangle(size=right_layout.size, pos=right_layout.pos)
         right_layout.bind(size=self._update_right_rect, pos=self._update_right_rect)
 
-        # ==================== Left Layout ====================
+        # ==================== Layout da Esquerda ====================
         
         title = Label(
             text='Arruma Minha Cidade',
@@ -72,7 +76,7 @@ class LandingScreen(Screen):
             btn.bind(on_press=callback)
             left_layout.add_widget(btn)
 
-        # ==================== Right Layout: Top Bar ====================
+        # ==================== Layout da Direita: Barra Superior ====================
 
         top_bar = BoxLayout(
             orientation='horizontal',
@@ -81,16 +85,11 @@ class LandingScreen(Screen):
             padding=10,
             spacing=10
         )
-        # Add background to top_bar for debugging
-        with top_bar.canvas.before:
-            Color(0.8, 0.8, 0.8, 1) 
-            self.top_bar_rect = Rectangle(size=top_bar.size, pos=top_bar.pos)
-        top_bar.bind(size=self._update_top_bar_rect, pos=self._update_top_bar_rect)
 
-        # Spacer to push content to the right
+        # Espaçador para empurrar o conteúdo para a direita
         top_bar.add_widget(Widget(size_hint_x=1))
 
-        # Profile label
+        # Label do perfil
         user_label = Label(
             text='Olá, Usuário!',
             font_size=20,
@@ -103,23 +102,50 @@ class LandingScreen(Screen):
         user_label.bind(size=user_label.setter('text_size'))
         top_bar.add_widget(user_label)
 
-        # Profile picture
-        try:
-            profile_pic = Image(
-                source=os.path.join('images', 'logo.png'),
-                size_hint=(None, None),
-                size=(60, 60),
-                fit_mode='contain'  
-            )
-        except Exception as e:
-            print(f"Error loading profile picture: {e}")
-            profile_pic = Label(text='[Image Missing]', size_hint=(None, None), size=(60, 60))
+        # Foto de perfil
+        profile_pic = Image(
+            source=os.path.join('images', 'logo.png'),
+            size_hint=(None, None),
+            size=(60, 60),
+            fit_mode='contain'  
+        )
         top_bar.add_widget(profile_pic)
 
-        # Add top_bar to right_layout
+        # Adiciona a top_bar na primeira linha do right_layout
         right_layout.add_widget(top_bar)
 
-    # ==================== Update Methods ====================
+        # Adiciona um BoxLayout vazio (ou coloque aqui o conteúdo principal do lado direito)
+        right_content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+
+        # ======= Exemplo de barra de pesquisa =======
+        search_bar = TextInput(
+            hint_text='Pesquisar...',
+            size_hint_y=None,
+            height=40,
+            multiline=False
+        )
+        right_content.add_widget(search_bar)
+
+        # ======= POSTS =======
+
+        scroll = ScrollView(size_hint=(1, 1))
+        posts_layout = BoxLayout(orientation='vertical', size_hint_y=None, spacing=10)
+        posts_layout.bind(minimum_height=posts_layout.setter('height'))
+
+        # Adiciona alguns posts de exemplo
+        for i in range(1, 6):
+            post = BoxLayout(orientation='vertical', size_hint_y=None, height=100, padding=10)
+            post.add_widget(Label(text=f'Post #{i}', font_size=18, color=(0,0,0,1), size_hint_y=None, height=30))
+            post.add_widget(Label(text='Conteúdo do post aqui...', font_size=14, color=(0,0,0,1)))
+            posts_layout.add_widget(post)
+
+        scroll.add_widget(posts_layout)
+        right_content.add_widget(scroll)
+
+        # Adiciona o right_content ao right_layout
+        right_layout.add_widget(right_content)
+
+    # ==================== Métodos de Atualização ====================
 
     def _update_left_rect(self, instance, value):
         self.left_rect.pos = instance.pos
@@ -133,33 +159,33 @@ class LandingScreen(Screen):
         self.top_bar_rect.pos = instance.pos
         self.top_bar_rect.size = instance.size
 
-    # ==================== Navigation Methods ====================
+    # ==================== Métodos de Navegação ====================
     def go_to_perfil(self, instance):
         if 'perfil' in self.manager.screen_names:
             self.manager.current = 'perfil'
         else:
-            print("Error: 'perfil' screen not found")
+            print("Erro: tela 'perfil' não encontrada")
 
     def go_to_blog(self, instance):
         if 'blog' in self.manager.screen_names:
             self.manager.current = 'blog'
         else:
-            print("Error: 'blog' screen not found")
+            print("Erro: tela 'blog' não encontrada")
 
     def go_to_services(self, instance):
         if 'services' in self.manager.screen_names:
             self.manager.current = 'services'
         else:
-            print("Error: 'services' screen not found")
+            print("Erro: tela 'services' não encontrada")
 
     def go_to_notifs(self, instance):
         if 'notifications' in self.manager.screen_names:
             self.manager.current = 'notifications'
         else:
-            print("Error: 'notifications' screen not found")
+            print("Erro: tela 'notifications' não encontrada")
 
     def go_to_login(self, instance):
         if 'login' in self.manager.screen_names:
             self.manager.current = 'login'
         else:
-            print("Error: 'login' screen not found")
+            print("Erro: tela 'login' não encontrada")
