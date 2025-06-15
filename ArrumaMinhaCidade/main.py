@@ -5,6 +5,10 @@ from screens.perfil import PerfilScreen
 from screens.landing import LandingScreen
 from screens.blog import BlogScreen
 from controllers.navigation import NavigationController
+from kivy.core.window import Window
+
+Window.clearcolor = (1, 1, 1, 1)
+Window.maximize()
 
 class ScreenManagement(ScreenManager):
     pass
