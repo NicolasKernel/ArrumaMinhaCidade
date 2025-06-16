@@ -53,7 +53,7 @@ class LandingScreen(Screen):
         left_layout.add_widget(title)
 
         logo = Image(
-            source=os.path.join('images', 'logo.png'),
+            source=os.path.join('resources', 'logo.png'),
             size_hint=(1, None),
             height=300,
             fit_mode='contain'
@@ -104,7 +104,7 @@ class LandingScreen(Screen):
 
         # Foto de perfil
         profile_pic = Image(
-            source=os.path.join('images', 'logo.png'),
+            source=os.path.join('resources', 'logo.png'),
             size_hint=(None, None),
             size=(60, 60),
             fit_mode='contain'  
