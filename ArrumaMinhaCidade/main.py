@@ -4,11 +4,10 @@ from screens.login import LoginScreen
 from screens.perfil import PerfilScreen
 from screens.landing import LandingScreen
 from screens.blog import BlogScreen
+from screens.service_update import ServiceUpdateScreen
 from controllers.navigation import NavigationController
 from kivy.core.window import Window
-from kivy.config import Config
 
-Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Window.clearcolor = (1, 1, 1, 1)
 Window.maximize()
 
@@ -18,10 +17,12 @@ class ScreenManagement(ScreenManager):
 class MainApp(App):
     def build(self):
         sm = ScreenManagement()
+        nav = NavigationController(sm)
         sm.add_widget(LoginScreen(name='login'))
         sm.add_widget(PerfilScreen(name='perfil'))
         sm.add_widget(LandingScreen(name='landing'))
         sm.add_widget(BlogScreen(name='blog'))
+        sm.add_widget(ServiceUpdateScreen(name='service_update'))
         return sm
 
 if __name__ == '__main__':
