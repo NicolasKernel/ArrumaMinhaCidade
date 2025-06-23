@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from screens.login import LoginScreen
 from screens.cadastro import CadastroScreen
+from screens.notifs import NotifsScreen
 from screens.perfil import PerfilScreen
 from screens.landing import LandingScreen
 from screens.blog import BlogScreen
@@ -22,6 +23,7 @@ class MainApp(App):
         sm = ScreenManagement()
         sm.add_widget(LoginScreen(name='login'))
         sm.add_widget(CadastroScreen(name='cadastro'))
+        sm.add_widget(NotifsScreen(name='notifs'))
         sm.add_widget(PerfilScreen(name='perfil'))
         sm.add_widget(LandingScreen(name='landing'))
         sm.add_widget(ServiceUpdateScreen(name='service_update'))
