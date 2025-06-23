@@ -86,7 +86,7 @@ class LoginScreen(Screen):
         main_layout.add_widget(self.error_label)
 
         self.usuarios = {
-            '123456789': '123',
+            'ABC': 'ABC',
             '111111111': '456'
         }
 
