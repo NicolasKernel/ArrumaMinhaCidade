@@ -1,0 +1,102 @@
+[
+    {
+        "username": "Nicolas",
+        "email": "nicolas@email.com",
+        "telefone": "8227507773",
+        "cpf": "17647290487",
+        "senha": "123456",
+        "cep": "06680-540",
+        "bairro": "Nossa Senhora",
+        "is_admin": false
+    },
+    {
+        "username": "TEST_USER",
+        "email": "maria.silva@email.com",
+        "telefone": "11987654321",
+        "cpf": "ABC",
+        "senha": "ABC",
+        "cep": "01001-000",
+        "bairro": "Centro",
+        "is_admin": false
+    },
+    {
+        "username": "João Souza",
+        "email": "joao.souza@email.com",
+        "telefone": "21999998888",
+        "cpf": "98765432100",
+        "senha": "senhaJoao",
+        "cep": "20040-010",
+        "bairro": "Copacabana",
+        "is_admin": false
+    },
+    {
+        "username": "Ana Paula",
+        "email": "ana.paula@email.com",
+        "telefone": "31988887777",
+        "cpf": "32165498701",
+        "senha": "senhaAna",
+        "cep": "30130-010",
+        "bairro": "Savassi",
+        "is_admin": false
+    },
+    {
+        "username": "Carlos Mendes",
+        "email": "carlos.mendes@email.com",
+        "telefone": "11912345678",
+        "cpf": "74185296300",
+        "senha": "senhaCarlos",
+        "cep": "04094-050",
+        "bairro": "Moema",
+        "is_admin": true
+    },
+    {
+        "username": "Fernanda Lima",
+        "email": "fernanda.lima@email.com",
+        "telefone": "21987654321",
+        "cpf": "85296374100",
+        "senha": "senhaFernanda",
+        "cep": "22290-240",
+        "bairro": "Botafogo",
+        "is_admin": false
+    },
+    {
+        "username": "Pedro Henrique",
+        "email": "pedro.henrique@email.com",
+        "telefone": "11955554444",
+        "cpf": "96385274100",
+        "senha": "senhaPedro",
+        "cep": "05001-100",
+        "bairro": "Perdizes",
+        "is_admin": false
+    },
+    {
+        "username": "Juliana Alves",
+        "email": "juliana.alves@email.com",
+        "telefone": "31977776666",
+        "cpf": "15935748620",
+        "senha": "senhaJuliana",
+        "cep": "30110-012",
+        "bairro": "Funcionários",
+        "is_admin": false
+    },
+    {
+        "username": "Lucas Rocha",
+        "email": "lucas.rocha@email.com",
+        "telefone": "21933332222",
+        "cpf": "25845612399",
+        "senha": "senhaLucas",
+        "cep": "20271-130",
+        "bairro": "Tijuca",
+        "is_admin": false
+    },
+    {
+        "username": "Admin",
+        "email": "admin@email.com",
+        "telefone": "11900001111",
+        "cpf": "11122233344",
+        "senha": "admin123",
+        "cep": "01310-200",
+        "bairro": "Bela Vista",
+        "is_admin": true
+    }
+]
