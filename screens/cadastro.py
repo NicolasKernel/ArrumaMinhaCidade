@@ -10,7 +10,7 @@ from kivy.uix.widget import Widget
 import os
 import json
 from models.user import User
-from utils.validation import validate_cep
+from utils.validation import validate_cep, validate_email, validate_cpf
 
 class CadastroScreen(Screen):
     def __init__(self, **kwargs):
@@ -122,9 +122,32 @@ class CadastroScreen(Screen):
         self.bg_rect.size = instance.size
 
     def submit_action(self, instance):
+        # Validação de Email antes de cadastrar
+        email = getattr(self, "email_input", None)
+        email_valor = email.text if email else ""
+        if not validate_email(email_valor):
+            popup = Popup(
+                title='Email inválido',
+                content=Label(text='O email informado é inválido ou não existe.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+            return
+
+        # Validação de CPF antes de cadastrar
+        if not validate_cpf(self.cpf_input.text):
+            popup = Popup(
+                title='CPF inválido',
+                content=Label(text='O CPF informado é inválido.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+            return
+
         # Validação de CEP antes de cadastrar
-        cep_valido = validate_cep(self.cep_input.text)
-        if not cep_valido:
+        if not validate_cep(self.cep_input.text):
             popup = Popup(
                 title='CEP inválido',
                 content=Label(text='O CEP informado é inválido ou não existe.'),
@@ -137,7 +160,7 @@ class CadastroScreen(Screen):
         # Cria o usuário
         user = User(
             username=self.nome_input.text,
-            email="",
+            email=email_valor,
             telefone=self.telefone_input.text,
             cpf=self.cpf_input.text,
             cep=self.cep_input.text,
