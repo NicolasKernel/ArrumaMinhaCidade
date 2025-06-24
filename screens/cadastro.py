@@ -10,6 +10,7 @@ from kivy.uix.widget import Widget
 import os
 import json
 from models.user import User
+from utils.validation import validate_cep
 
 class CadastroScreen(Screen):
     def __init__(self, **kwargs):
@@ -121,6 +122,18 @@ class CadastroScreen(Screen):
         self.bg_rect.size = instance.size
 
     def submit_action(self, instance):
+        # Validação de CEP antes de cadastrar
+        cep_valido = validate_cep(self.cep_input.text)
+        if not cep_valido:
+            popup = Popup(
+                title='CEP inválido',
+                content=Label(text='O CEP informado é inválido ou não existe.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+            return
+
         # Cria o usuário
         user = User(
             username=self.nome_input.text,
