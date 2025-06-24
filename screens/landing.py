@@ -8,6 +8,7 @@ from kivy.uix.widget import Widget
 from kivy.graphics import Color, Rectangle
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
+from kivy.app import App
 import os
 
 class LandingScreen(Screen):
@@ -90,17 +91,21 @@ class LandingScreen(Screen):
         top_bar.add_widget(Widget(size_hint_x=1))
 
         # Label do perfil
-        user_label = Label(
-            text='Olá, Usuário!',
+        usuario_nome = "Usuário"
+        app = App.get_running_app()
+        if hasattr(app, "usuario_logado") and app.usuario_logado:
+            usuario_nome = app.usuario_logado.get("username", "Usuário")
+        self.user_label = Label(
+            text=f'Olá, {usuario_nome}!',
             font_size=20,
             color=(0, 0, 0, 1),
             size_hint=(None, None),
-            size=(150, 60),
+            size=(200, 60),
             halign='right',
             valign='middle'
         )
-        user_label.bind(size=user_label.setter('text_size'))
-        top_bar.add_widget(user_label)
+        self.user_label.bind(size=self.user_label.setter('text_size'))
+        top_bar.add_widget(self.user_label)
 
         # Foto de perfil
         profile_pic = Image(
@@ -189,3 +194,11 @@ class LandingScreen(Screen):
             self.manager.current = 'login'
         else:
             print("Erro: tela 'login' não encontrada")
+
+    def on_pre_enter(self, *args):
+        # Atualiza o nome do usuário sempre que entrar na tela
+        usuario_nome = "Usuário"
+        app = App.get_running_app()
+        if hasattr(app, "usuario_logado") and app.usuario_logado:
+            usuario_nome = app.usuario_logado.get("username", "Usuário")
+        self.user_label.text = f'Olá, {usuario_nome}!'
