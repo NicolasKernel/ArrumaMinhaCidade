@@ -3,13 +3,19 @@ import requests
 
 
 def validate_email(email):
-    """Valida se o email possui formato correto usando regex mais completa."""
-    pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-    return bool(re.match(pattern, email))
+        API_KEY = '62bb42f1e61c42e09bead379af4d74f1'
+        url = f"https://emailvalidation.abstractapi.com/v1/?api_key={API_KEY}&email={email}"
+        try:
+            response = requests.get(url)
+            data = response.json()
+            # Checa se o e-mail é válido e existe
+            return data.get("deliverability") == "DELIVERABLE"
+        except Exception as e:
+            print(f"Erro ao validar e-mail via API: {e}")
+            return False
 
 
 def validate_cpf(cpf):
-    """Valida se o CPF possui 11 dígitos numéricos e dígitos verificadores corretos."""
     cpf = re.sub(r'\D', '', cpf)
     if len(cpf) != 11 or not cpf.isdigit():
         return False
