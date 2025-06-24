@@ -7,6 +7,7 @@ from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Rectangle
 from kivy.uix.popup import Popup
+from kivy.app import App
 import os
 import json
 
@@ -103,14 +104,15 @@ class LoginScreen(Screen):
         except (FileNotFoundError, json.JSONDecodeError):
             users_data = []
 
-        usuario_encontrado = False
+        usuario_encontrado = None
         for user in users_data:
             if user.get("cpf") == cpf and user.get("senha") == senha:
-                usuario_encontrado = True
+                usuario_encontrado = user
                 break
 
         if usuario_encontrado:
             print(f"Usuário {cpf} logado com sucesso!")
+            App.get_running_app().usuario_logado = usuario_encontrado
             if self.manager and 'landing' in self.manager.screen_names:
                 self.manager.current = 'landing'
         else:
