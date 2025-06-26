@@ -10,12 +10,14 @@ from kivy.uix.widget import Widget
 from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 import os
+import json
+from datetime import datetime
 
 class NotifsScreen(Screen):
     def __init__(self, blog_posts=None, **kwargs):
         super().__init__(**kwargs)
-
-        self.notif_posts = blog_posts if blog_posts is not None else []
+        self.json_file = "services_updates.json"
+        self.notif_posts = blog_posts if blog_posts is not None else self.load_json_data()
 
         # Layout principal horizontal
         main_layout = BoxLayout(orientation='horizontal', spacing=10)
@@ -40,252 +42,201 @@ class NotifsScreen(Screen):
             self.right_rect = Rectangle(size=right_layout.size, pos=right_layout.pos)
         right_layout.bind(size=self._update_right_rect, pos=self._update_right_rect)
 
-        # ==================== Barra Lateral Esquerda ====================
-        title = Label(
-            text='Notificações',
-            font_size=22,
-            size_hint=(1, None),
-            height=60,
-            color=(0, 0, 0, 1),
-            font_name='Roboto'
-        )
-        left_layout.add_widget(title)
+        # ==================== Left Layout: Barra de Navegação ====================
+        left_layout.add_widget(Widget(size_hint_y=None, height=20))  # Espaçamento
 
-        logo = Image(
+        logo_image = Image(
             source=os.path.join('resources', 'logo.png'),
-            size_hint=(1, None),
-            height=120,
-            fit_mode='contain'
+            size_hint_y=None,
+            height=50
         )
-        left_layout.add_widget(logo)
-        
-        left_layout.add_widget(Widget())
+        left_layout.add_widget(logo_image)
 
-        buttons = [
-            ('Perfil', self.go_to_perfil),
-            ('Blog', self.go_to_blog),
-            ('Lista de Serviços', self.go_to_services),
-            ('Sair', self.go_to_login)
+        left_layout.add_widget(Widget(size_hint_y=None, height=20))  # Espaçamento
+
+        # Botões de navegação
+        nav_buttons_data = [
+            ("perfil", "perfil_icon.png", self.go_to_perfil),
+            ("notifications", "notifs_icon.png", None),  # Já estamos em notificações
+            ("landing", "home_icon.png", self.go_to_landing),
+            ("services", "services_icon.png", self.go_to_services),
+            ("blog", "blog_icon.png", self.go_to_blog),
+            ("logout", "logout_icon.png", self.go_to_login),
         ]
-        for text, callback in buttons:
-            btn = Button(
-                text=text,
-                size_hint=(1, 0.5),
-                background_color=(0.1, 0.7, 0.3, 1),
-                color=(1, 1, 1, 1)
+
+        for name, icon, on_press_callback in nav_buttons_data:
+            button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
+            
+            icon_image = Image(source=os.path.join('resources', icon), size_hint_x=None, width=30)
+            button_layout.add_widget(icon_image)
+
+            button = Button(
+                text=name.capitalize(),
+                background_color=(0, 0, 0, 0),  # Transparente
+                color=(0, 0, 0, 1),
+                size_hint_x=1,
+                halign='left',
+                valign='middle',
+                text_size=(left_layout.width - 60, None)
             )
-            btn.bind(on_press=callback)
-            left_layout.add_widget(btn)
+            if on_press_callback:
+                button.bind(on_press=on_press_callback)
+            
+            button_layout.add_widget(button)
+            left_layout.add_widget(button_layout)
+            
+            left_layout.add_widget(Widget(size_hint_y=None, height=10)) # Espaçamento entre botões
 
-        # ==================== Filtros no topo da área direita ====================
-        filter_bar = BoxLayout(orientation='horizontal', size_hint_y=None, height=60, padding=10, spacing=10)
+        left_layout.add_widget(Widget())  # Espaçador para empurrar o conteúdo para cima
 
-        self.filter_spinner = Spinner(
-            text='Filtrar por',
-            values=('Região', 'Endereço', 'Bairro', 'Todos'),
-            size_hint_x=None,
-            width=150
-        )
-        self.filter_spinner.bind(text=self.on_filter_change)
-        filter_bar.add_widget(self.filter_spinner)
+        # ==================== Right Layout: Top Bar e Conteúdo ====================
+        # Top bar (Área de usuário)
+        top_bar = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, padding=10, spacing=10)
+        with top_bar.canvas.before:
+            Color(0.9, 0.9, 0.9, 1)
+            self.top_bar_rect = Rectangle(size=top_bar.size, pos=top_bar.pos)
+        top_bar.bind(size=self._update_top_bar_rect, pos=self._update_top_bar_rect)
 
-        self.search_input = TextInput(
-            hint_text='Pesquisar...',
-            size_hint_x=1,
-            height=40,
-            multiline=False
-        )
-        self.search_input.bind(text=self.on_filter_change)
-        filter_bar.add_widget(self.search_input)
+        user_label = Label(text="Olá, Usuário!", color=(0, 0, 0, 1), font_size=18, size_hint_x=0.8)
+        top_bar.add_widget(user_label)
 
-        right_layout.add_widget(filter_bar)
-
-        # ==================== Conteúdo Principal Direita ====================
-        right_content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-
-        # Título da tela
-        title = Label(
-            text='Notificações dos Serviços que você segue',
+        settings_button = Button(
+            text="⚙️",
             font_size=24,
-            size_hint_y=None,
-            height=50,
-            color=(0, 0, 0, 1),
-            font_name='Roboto',
-            halign='center',
-            text_size=(None, None)
+            size_hint_x=0.1,
+            background_color=(0,0,0,0),
+            color=(0,0,0,1)
         )
-        right_content.add_widget(title)
+        top_bar.add_widget(settings_button)
 
-        # ScrollView para a lista de notificações
-        self.scroll = ScrollView(size_hint=(1, 1))
-        self.notif_layout = BoxLayout(
-            orientation='vertical',
-            size_hint_y=None,
-            spacing=15,
-            padding=[10, 10, 10, 10]
+        logout_button_top = Button(
+            text="Sair",
+            size_hint_x=0.1,
+            background_color=(1, 0.2, 0.2, 1),
+            on_press=self.go_to_login
         )
-        self.notif_layout.bind(minimum_height=self.notif_layout.setter('height'))
+        top_bar.add_widget(logout_button_top)
+        right_layout.add_widget(top_bar)
 
-        with self.notif_layout.canvas.before:
-            Color(0.95, 0.95, 0.95, 1)
-            self.notif_rect = Rectangle(size=self.notif_layout.size, pos=self.notif_layout.pos)
-        self.notif_layout.bind(size=self._update_notif_rect, pos=self._update_notif_rect)
+        # Área de Conteúdo das Notificações
+        self.notifs_content = ScrollView(do_scroll_y=True, size_hint_y=1)
+        right_layout.add_widget(self.notifs_content)
 
-        self.scroll.add_widget(self.notif_layout)
-        right_content.add_widget(self.scroll)
+        self.notifs_layout = BoxLayout(orientation='vertical', spacing=20, size_hint_y=None, padding=10)
+        self.notifs_layout.bind(minimum_height=self.notifs_layout.setter('height'))
+        self.notifs_content.add_widget(self.notifs_layout)
 
-        # Botão para voltar à tela inicial
-        back_button = Button(
-            text='Voltar para Landing',
-            size_hint=(1, None),
-            height=50,
-            background_color=(0.1, 0.7, 0.3, 1),
-            color=(1, 1, 1, 1)
-        )
-        back_button.bind(on_press=self.go_to_landing)
-        right_content.add_widget(back_button)
+        # Atualizar e exibir as notificações
+        self.update_notifs()
 
-        right_layout.add_widget(right_content)
+    def load_json_data(self):
+        """Carrega os dados do JSON."""
+        try:
+            with open(self.json_file, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
 
-        # Inicializa a lista de notificações
-        self.update_notifs(self.notif_posts)
+    def on_pre_enter(self, *args):
+        """Recarga os dados do JSON antes de entrar na tela."""
+        self.notif_posts = self.load_json_data()
+        self.update_notifs()
 
-    def on_filter_change(self, instance, value):
-        filtro = self.search_input.text.lower()
-        categoria = self.filter_spinner.text
+    def update_notifs(self):
+        self.notifs_layout.clear_widgets()
 
-        if categoria == 'Todos' or categoria == 'Filtrar por':
-            filtrados = [
-                s for s in self.notif_posts
-                if filtro in s.get('title', '').lower() or filtro in s.get('description', '').lower() or filtro in s.get('address', '').lower()
-            ]
-        elif categoria == 'Região':
-            filtrados = [
-                s for s in self.notif_posts
-                if filtro in s.get('address', '').lower()
-            ]
-        elif categoria == 'Endereço':
-            filtrados = [
-                s for s in self.notif_posts
-                if filtro in s.get('address', '').lower()
-            ]
-        elif categoria == 'Bairro':
-            filtrados = [
-                s for s in self.notif_posts
-                if filtro in s.get('address', '').lower()
-            ]
-        else:
-            filtrados = self.notif_posts
+        # Coletar todas as atualizações de todos os serviços
+        all_updates = []
+        for service_title, service_data in self.notif_posts.items():
+            if 'updates' in service_data and service_data['updates']:
+                for update in service_data['updates']:
+                    # Adiciona o título do serviço a cada atualização para exibição
+                    update_with_service_context = {
+                        'service_title': service_title,
+                        'status': service_data.get('status', 'N/A'),
+                        'image_path': service_data.get('image', ''),
+                        **update
+                    }
+                    all_updates.append(update_with_service_context)
+        
+        # Ordenar todas as atualizações pela data (mais recentes primeiro)
+        try:
+            all_updates.sort(
+                key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y %H:%M'),
+                reverse=True
+            )
+        except (KeyError, ValueError) as e:
+            print(f"Erro ao ordenar atualizações: {e}")
 
-        self.update_notifs(filtrados)
-
-    def update_notifs(self, notif_posts):
-        self.notif_layout.clear_widgets()
-        if not notif_posts:
-            self.notif_layout.add_widget(Label(
-                text="Você ainda não segue nenhum serviço.",
-                font_size=16,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint_y=None,
-                height=40
-            ))
+        if not all_updates:
+            self.notifs_layout.add_widget(Label(text="Nenhuma notificação disponível.", color=(0,0,0,1)))
             return
 
-        for notif in notif_posts:
-            post = BoxLayout(
-                orientation='horizontal',
-                size_hint_y=None,
-                height=180,
-                padding=[10, 5, 10, 5],
-                spacing=10
-            )
-            with post.canvas.before:
-                Color(1, 1, 1, 1)
-                post.post_rect = Rectangle(size=post.size, pos=post.pos)
-            post.bind(size=self._update_post_rect, pos=self._update_post_rect)
+        for notif in all_updates:
+            notif_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=200, padding=10, spacing=5)
+            with notif_layout.canvas.before:
+                Color(0.95, 0.95, 0.95, 1)
+                notif_layout.notif_rect = Rectangle(size=notif_layout.size, pos=notif_layout.pos)
+            notif_layout.bind(size=self._update_notif_rect, pos=self._update_notif_rect)
 
-            service_image = Image(
-                source=notif.get('image', ''),
-                size_hint_x=0.3,
-                size_hint_y=None,
-                height=140,
-                fit_mode='contain'
-            )
-            post.add_widget(service_image)
-
-            text_layout = BoxLayout(
-                orientation='vertical',
-                size_hint_x=0.7,
-                spacing=5
-            )
-
-            title_label = Label(
-                text=notif.get('title', ''),
-                font_size=18,
+            # Cabeçalho da Notificação (Título do Serviço, Data e Status)
+            header_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=30)
+            
+            service_title_label = Label(
+                text=f"Serviço: {notif.get('service_title', 'N/A')}",
+                font_size=16,
+                bold=True,
                 color=(0, 0, 0, 1),
-                size_hint_y=None,
-                height=30,
+                size_hint_x=0.7,
                 halign='left',
                 valign='middle',
-                text_size=(None, None)
+                text_size=(self.notifs_content.width * 0.7 - 20, None)
             )
-            title_label.bind(size=title_label.setter('text_size'))
-            text_layout.add_widget(title_label)
+            header_layout.add_widget(service_title_label)
 
-            desc_label = Label(
-                text=notif.get('description', ''),
-                font_size=14,
-                color=(0, 0, 0, 1),
-                size_hint_y=None,
-                height=60,
+            status_color = (0, 0.7, 0, 1) if notif.get('status', 'Ativo') == 'Ativo' else (0.7, 0.7, 0, 1)
+            status_label = Label(
+                text=f"Status: {notif.get('status', 'N/A')}",
+                font_size=12,
+                color=status_color,
+                size_hint_x=0.3,
+                halign='right',
+                valign='middle'
+            )
+            header_layout.add_widget(status_label)
+            notif_layout.add_widget(header_layout)
+
+            # Imagem do Serviço
+            image_path = notif.get('image_path', '')
+            if image_path and os.path.exists(image_path):
+                service_image = Image(
+                    source=image_path,
+                    size_hint_y=None,
+                    height=80,
+                    fit_mode='contain'
+                )
+                notif_layout.add_widget(service_image)
+            else:
+                placeholder_label = Label(text="[Sem Imagem]", color=(0.5,0.5,0.5,1), size_hint_y=None, height=80)
+                notif_layout.add_widget(placeholder_label)
+
+            # Detalhes da Atualização
+            update_text = notif.get('text', '')
+            update_user = notif.get('user', 'Desconhecido')
+            update_date = notif.get('date', 'N/A')
+
+            update_label = Label(
+                text=f"Por {update_user} em {update_date}:\n[color=000000]{update_text}[/color]",
+                markup=True,
+                font_size=13,
+                color=(0.3, 0.3, 0.3, 1),
                 halign='left',
                 valign='top',
-                text_size=(None, None)
+                text_size=(self.notifs_content.width - 40, None)
             )
-            desc_label.bind(size=desc_label.setter('text_size'))
-            text_layout.add_widget(desc_label)
+            notif_layout.add_widget(update_label)
 
-            address_label = Label(
-                text=f'Endereço: {notif.get("address", "")}',
-                font_size=12,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint_y=None,
-                height=20,
-                halign='left',
-                valign='middle',
-                text_size=(None, None)
-            )
-            address_label.bind(size=address_label.setter('text_size'))
-            text_layout.add_widget(address_label)
-
-            status_label = Label(
-                text=f'Status: {notif.get("status", "")}',
-                font_size=12,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint_y=None,
-                height=20,
-                halign='left',
-                valign='middle',
-                text_size=(None, None)
-            )
-            status_label.bind(size=status_label.setter('text_size'))
-            text_layout.add_widget(status_label)
-
-            date_label = Label(
-                text=f'Data: {notif.get("date", "")}',
-                font_size=12,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint_y=None,
-                height=20,
-                halign='left',
-                valign='middle',
-                text_size=(None, None)
-            )
-            date_label.bind(size=date_label.setter('text_size'))
-            text_layout.add_widget(date_label)
-
-            post.add_widget(text_layout)
-            self.notif_layout.add_widget(post)
+            self.notifs_layout.add_widget(notif_layout)
 
     def _update_left_rect(self, instance, value):
         self.left_rect.pos = instance.pos
@@ -295,13 +246,13 @@ class NotifsScreen(Screen):
         self.right_rect.pos = instance.pos
         self.right_rect.size = instance.size
 
-    def _update_notif_rect(self, instance, value):
-        self.notif_rect.pos = instance.pos
-        self.notif_rect.size = instance.size
+    def _update_top_bar_rect(self, instance, value):
+        self.top_bar_rect.pos = instance.pos
+        self.top_bar_rect.size = instance.size
 
-    def _update_post_rect(self, instance, value):
-        instance.post_rect.pos = instance.pos
-        instance.post_rect.size = instance.size
+    def _update_notif_rect(self, instance, value):
+        instance.notif_rect.pos = instance.pos
+        instance.notif_rect.size = instance.size
 
     def go_to_perfil(self, instance):
         if 'perfil' in self.manager.screen_names:
@@ -329,4 +280,6 @@ class NotifsScreen(Screen):
 
     def go_to_landing(self, instance):
         if 'landing' in self.manager.screen_names:
-            self.manager.current = "landing"
+            self.manager.current = 'landing'
+        else:
+            print("Erro: tela 'landing' não encontrada")
