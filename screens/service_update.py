@@ -17,7 +17,7 @@ class ServiceUpdateScreen(Screen):
         self.update_data = None
         self.current_user = "Administrador"  # Nome do usuário fixo para demonstração
         self.is_admin = True  # Verificação de administrador (fixa para demonstração)
-        self.json_file = "admin_updates.json"  # Arquivo para armazenar atualizações e status
+        self.json_file = "services_updates.json"  # Arquivo para armazenar atualizações e status
 
         # Layout principal
         main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -110,7 +110,7 @@ class ServiceUpdateScreen(Screen):
         content_layout.add_widget(details_layout)
         main_layout.add_widget(content_layout)
 
-        # Área para status
+        # Área para status (apenas para administradores)
         status_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
         status_label = Label(
             text='Andamento da Obra:',
@@ -186,16 +186,16 @@ class ServiceUpdateScreen(Screen):
         submit_button.bind(on_press=self.submit_admin_update)
         main_layout.add_widget(submit_button)
 
-        # Botão para voltar ao admin
+        # Botão para voltar ao blog
         back_button = Button(
-            text='Voltar para tela de admin',
+            text='Voltar para Blog',
             size_hint=(0.8, None),
             height=50,
             background_color=(0.1, 0.7, 0.3, 1),
             color=(1, 1, 1, 1),
             pos_hint={'center_x': 0.5}
         )
-        back_button.bind(on_press=self.go_to_admin)
+        back_button.bind(on_press=self.go_to_blog)
         main_layout.add_widget(back_button)
 
         self.add_widget(main_layout)
@@ -480,12 +480,6 @@ class ServiceUpdateScreen(Screen):
             self.manager.current = 'blog'
         else:
             print("Erro: tela 'blog' não encontrada")
-
-    def go_to_admin(self, instance):
-        if 'admin' in self.manager.screen_names:
-            self.manager.current = 'admin'
-        else:
-            print("Erro: tela 'admin' não encontrada")
 
     def _update_content_rect(self, instance, value):
         self.content_rect.pos = instance.pos
