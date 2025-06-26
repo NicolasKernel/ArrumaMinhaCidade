@@ -110,7 +110,7 @@ class ServiceUpdateScreen(Screen):
         content_layout.add_widget(details_layout)
         main_layout.add_widget(content_layout)
 
-        # Área para status (apenas para administradores)
+        # Área para status
         status_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
         status_label = Label(
             text='Andamento da Obra:',
@@ -186,16 +186,16 @@ class ServiceUpdateScreen(Screen):
         submit_button.bind(on_press=self.submit_admin_update)
         main_layout.add_widget(submit_button)
 
-        # Botão para voltar ao blog
+        # Botão para voltar ao admin
         back_button = Button(
-            text='Voltar para Blog',
+            text='Voltar para tela de admin',
             size_hint=(0.8, None),
             height=50,
             background_color=(0.1, 0.7, 0.3, 1),
             color=(1, 1, 1, 1),
             pos_hint={'center_x': 0.5}
         )
-        back_button.bind(on_press=self.go_to_blog)
+        back_button.bind(on_press=self.go_to_admin)
         main_layout.add_widget(back_button)
 
         self.add_widget(main_layout)
@@ -480,6 +480,12 @@ class ServiceUpdateScreen(Screen):
             self.manager.current = 'blog'
         else:
             print("Erro: tela 'blog' não encontrada")
+
+    def go_to_admin(self, instance):
+        if 'admin' in self.manager.screen_names:
+            self.manager.current = 'admin'
+        else:
+            print("Erro: tela 'admin' não encontrada")
 
     def _update_content_rect(self, instance, value):
         self.content_rect.pos = instance.pos
