@@ -19,7 +19,7 @@ import string
 class ServicesScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.json_file = "admin_updates.json"  # Same JSON file used by BlogScreen and ServiceUpdateScreen
+        self.json_file = "services_updates.json"  # Same JSON file used by BlogScreen and ServiceUpdateScreen
         self.service_types = [
             'Infraestrutura e Mobilidade',
             'Saneamento Básico',
