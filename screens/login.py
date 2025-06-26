@@ -7,7 +7,9 @@ from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Rectangle
 from kivy.uix.popup import Popup
+from kivy.app import App
 import os
+import json
 
 class LoginScreen(Screen):
     def __init__(self, **kwargs):
@@ -105,10 +107,7 @@ class LoginScreen(Screen):
         self.error_label = Label(text='', font_size=13, color=(1, 0, 0, 1))
         main_layout.add_widget(self.error_label)
 
-        self.usuarios = {
-            'ABC': 'ABC',
-            '111111111': '456'
-        }
+        self.users_json = "usuarios.json"
 
     def _update_bg_rect(self, instance, value):
         self.bg_rect.pos = instance.pos
@@ -117,9 +116,27 @@ class LoginScreen(Screen):
     def login_action(self, instance):
         cpf = self.cpf_input.text
         senha = self.senha_input.text
-        if cpf in self.usuarios and self.usuarios[cpf] == senha:
+
+        try:
+            with open(self.users_json, "r", encoding="utf-8") as f:
+                users_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            users_data = []
+
+        usuario_encontrado = None
+        for user in users_data:
+            if user.get("cpf") == cpf and user.get("senha") == senha:
+                usuario_encontrado = user
+                break
+
+        if usuario_encontrado:
             print(f"Usuário {cpf} logado com sucesso!")
-            if self.manager and 'landing' in self.manager.screen_names:
+            App.get_running_app().usuario_logado = usuario_encontrado
+            # Redireciona para tela de admin se for admin, senão para landing
+            if usuario_encontrado.get("is_admin", False):
+                if self.manager and 'admin' in self.manager.screen_names:
+                    self.manager.current = 'admin'
+            elif self.manager and 'landing' in self.manager.screen_names:
                 self.manager.current = 'landing'
         else:
             popup = Popup(
