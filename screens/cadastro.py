@@ -8,10 +8,14 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 import os
+import json
+from models.user import User
+from utils.validation import validate_cep, validate_email, validate_cpf
 
 class CadastroScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.users_json = "usuarios.json"
 
         # Layout principal vertical centralizado
         main_layout = BoxLayout(orientation='vertical', padding=60, spacing=20)
@@ -75,6 +79,11 @@ class CadastroScreen(Screen):
 
         main_layout.add_widget(telefone_cpf_layout)
 
+        # Campo Senha
+        main_layout.add_widget(Label(text='Senha:', font_size=13, color=(0.094, 0.208, 0.349, 0.839)))
+        self.senha_input = TextInput(multiline=False, password=True, size_hint=(1, None), height=40)
+        main_layout.add_widget(self.senha_input)
+
         # Campo CEP
         main_layout.add_widget(Label(text='CEP:', font_size=13, color=(0.094, 0.208, 0.349, 0.839)))
         self.cep_input = TextInput(multiline=False, size_hint=(1, None), height=40)
@@ -113,6 +122,63 @@ class CadastroScreen(Screen):
         self.bg_rect.size = instance.size
 
     def submit_action(self, instance):
+        # Validação de CPF antes de cadastrar
+        if not validate_cpf(self.cpf_input.text):
+            popup = Popup(
+                title='CPF inválido',
+                content=Label(text='O CPF informado é inválido.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+            return
+
+        # Validação de CEP antes de cadastrar
+        if not validate_cep(self.cep_input.text):
+            popup = Popup(
+                title='CEP inválido',
+                content=Label(text='O CEP informado é inválido ou não existe.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+            return
+
+        # Cria o usuário
+        user = User(
+            username=self.nome_input.text,
+            email="",  # Não há campo de email
+            telefone=self.telefone_input.text,
+            cpf=self.cpf_input.text,
+            cep=self.cep_input.text,
+            bairro=self.bairro_input.text,
+            senha=self.senha_input.text,
+            is_admin=False
+        )
+
+        # Carrega usuários existentes
+        try:
+            with open(self.users_json, "r", encoding="utf-8") as f:
+                users_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            users_data = []
+
+        # Adiciona novo usuário
+        users_data.append({
+            "username": user.username,
+            "email": user.email,
+            "telefone": user.telefone,
+            "cpf": user.cpf,
+            "cep": user.cep,
+            "bairro": user.bairro,
+            "senha": user.senha,
+            "is_admin": user.is_admin
+        })
+
+        # Salva no JSON
+        with open(self.users_json, "w", encoding="utf-8") as f:
+            json.dump(users_data, f, ensure_ascii=False, indent=4)
+
         # Mostra popup de confirmação de cadastro
         popup = Popup(
             title='Cadastro enviado',
