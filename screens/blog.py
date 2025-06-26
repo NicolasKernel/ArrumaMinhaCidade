@@ -16,7 +16,7 @@ from datetime import datetime
 class BlogScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.json_file = "admin_updates.json"  # Arquivo para armazenar status e atualizações
+        self.json_file = "services_updates.json"  # Arquivo para armazenar status e atualizações
 
         # Inicializa a lista de serviços vazia
         self.service_updates = []
