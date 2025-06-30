@@ -133,8 +133,6 @@ class LoginScreen(Screen):
             # Garante que os campos existem
             if "seguindo" not in usuario_encontrado:
                 usuario_encontrado["seguindo"] = []
-            if "notificacoes" not in usuario_encontrado:
-                usuario_encontrado["notificacoes"] = []
             print(f"Usuário {cpf} logado com sucesso!")
             App.get_running_app().usuario_logado = usuario_encontrado
             # Redireciona para tela de admin se for admin, senão para landing

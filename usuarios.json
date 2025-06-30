@@ -18,7 +18,12 @@
         "cep": "01001-000",
         "bairro": "Centro",
         "is_admin": false,
-        "seguindo": []
+        "seguindo": [
+            "077ZMP",
+            "456DEF",
+            "123ABC",
+            "789GHI"
+        ]
     },
     {
         "username": "João Souza",

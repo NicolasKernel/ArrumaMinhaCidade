@@ -8,6 +8,7 @@ from kivy.uix.screenmanager import ScreenManager, NoTransition, SlideTransition
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Rectangle
 from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
 from kivy.uix.switch import Switch
 import os
 
@@ -61,11 +62,11 @@ class PerfilScreen(Screen):
         
         # Botões para outras configurações
         buttons = [
-            ('Perfil', self.go_to_perfil),
-            ('Notificações', self.go_to_notifs),
-            ('Privacidade', self.go_to_privacy),
-            ('< Voltar', self.go_to_landing),
-            ('< Logout', self.go_to_login)
+            ('Ir para Ir para Landing', self.go_to_landing),
+            ('Ir para lista de Serviços', self.go_to_blog),
+            ('Ir para Notificações', self.go_to_notifs),
+            ('Solicitar Serviço', self.go_to_services),
+            ('Sair', self.go_to_login)
         ]
         for text, callback in buttons:
             btn = Button(
@@ -176,33 +177,44 @@ class PerfilScreen(Screen):
         self.right_rect.size = instance.size
 
     # ==================== Métodos de Navegação ====================
+    def go_to_landing(self, instance):
+        if 'landing' in self.manager.screen_names:
+            self.manager.current = 'landing'
+        else:
+            print("Erro: tela 'landing' não encontrada")
+    
     def go_to_perfil(self, instance):
-        pass  # Já está na tela de perfil
+            popup = Popup(
+                title='Aviso',
+                content=Label(text='Você já está no seu perfil.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+
+    def go_to_blog(self, instance):
+        if 'blog' in self.manager.screen_names:
+            self.manager.current = 'blog'
+        else:
+            print("Erro: tela 'blog' não encontrada")
+
+    def go_to_services(self, instance):
+        if 'services' in self.manager.screen_names:
+            self.manager.current = 'services'
+        else:
+            print("Erro: tela 'services' não encontrada")
 
     def go_to_notifs(self, instance):
-        if 'notifs' in self.manager.screen_names:
-            self.manager.current = 'notifs'
+        if 'notifications' in self.manager.screen_names:
+            self.manager.current = 'notifications'
         else:
             print("Erro: tela 'notifications' não encontrada")
-
-    def go_to_privacy(self, instance):
-        if 'privacy' in self.manager.screen_names:
-            self.manager.current = 'privacy'
-        else:
-            print("Erro: tela 'privacy' não encontrada")
 
     def go_to_login(self, instance):
         if 'login' in self.manager.screen_names:
             self.manager.current = 'login'
         else:
             print("Erro: tela 'login' não encontrada")
-            
-    def go_to_landing(self, instance):
-        if 'landing' in self.manager.screen_names:
-            self.manager.current = 'landing'
-        else:
-            print("Erro: tela 'landing' não encontrada")
-
     # ==================== Salvar Perfil ====================
     def save_profile(self, instance):
         nome = self.name_input.text

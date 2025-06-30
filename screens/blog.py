@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.image import Image
+from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
@@ -80,8 +81,11 @@ class BlogScreen(Screen):
         left_layout.add_widget(Widget())
 
         buttons = [
-            ('Notificações', self.go_to_notifs),
-            ('Voltar', self.go_to_landing)
+            ('Ir para Ir para Landing', self.go_to_landing),
+            ('Ir para lista de Serviços', self.go_to_blog),
+            ('Ir para Notificações', self.go_to_notifs),
+            ('Solicitar Serviço', self.go_to_services),
+            ('Sair', self.go_to_login)
         ]
         for text, callback in buttons:
             btn = Button(
@@ -198,18 +202,6 @@ class BlogScreen(Screen):
 
         self.scroll.add_widget(self.posts_layout)
         right_content.add_widget(self.scroll)
-
-        # Botão para voltar à tela inicial
-        back_button = Button(
-            text='Voltar para Landing',
-            size_hint=(None, None),
-            height=50,
-            background_color=(0.1, 0.7, 0.3, 1),
-            color=(1, 1,1),
-            width=300
-        )
-        back_button.bind(on_press=self.go_to_landing)
-        right_content.add_widget(back_button)
 
         right_layout.add_widget(right_content)
 
@@ -526,11 +518,26 @@ class BlogScreen(Screen):
         instance.post_rect.pos = instance.pos
         instance.post_rect.size = instance.size
 
+    def go_to_landing(self, instance):
+        if 'landing' in self.manager.screen_names:
+            self.manager.current = 'landing'
+        else:
+            print("Erro: tela 'landing' não encontrada")
+    
     def go_to_perfil(self, instance):
         if 'perfil' in self.manager.screen_names:
             self.manager.current = 'perfil'
         else:
             print("Erro: tela 'perfil' não encontrada")
+
+    def go_to_blog(self, instance):
+            popup = Popup(
+                title='Aviso',
+                content=Label(text='Você já está na lista de serviços.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
 
     def go_to_services(self, instance):
         if 'services' in self.manager.screen_names:
@@ -549,12 +556,6 @@ class BlogScreen(Screen):
             self.manager.current = 'login'
         else:
             print("Erro: tela 'login' não encontrada")
-
-    def go_to_landing(self, instance):
-        if 'landing' in self.manager.screen_names:
-            self.manager.current = 'landing'
-        else:
-            print("Erro: tela 'landing' não encontrada")
 
     def go_to_service_update(self, update):
         app = App.get_running_app()

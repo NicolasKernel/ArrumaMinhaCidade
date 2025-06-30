@@ -11,6 +11,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.app import App
 import os
+from kivy.uix.popup import Popup
 import json
 import datetime
 
@@ -63,8 +64,11 @@ class NotifsScreen(Screen):
         left_layout.add_widget(Widget())
 
         buttons = [
-            ('Blog', self.go_to_blog),
-            ('Lista de Serviços', self.go_to_blog),
+            ('Ir para Landing', self.go_to_landing),
+            ('Ir para lista de Serviços', self.go_to_blog),
+            ('Ir para Notificações', self.go_to_notifs),
+            ('Solicitar Serviço', self.go_to_services),
+            ('Sair', self.go_to_login)
         ]
         for text, callback in buttons:
             btn = Button(
@@ -146,17 +150,6 @@ class NotifsScreen(Screen):
         self.scroll.add_widget(self.notif_layout)
         right_content.add_widget(self.scroll)
 
-        # Botão para voltar à tela inicial
-        back_button = Button(
-            text='Voltar para Landing',
-            size_hint=(1, None),
-            height=50,
-            background_color=(0.1, 0.7, 0.3, 1),
-            color=(1, 1, 1, 1)
-        )
-        back_button.bind(on_press=self.go_to_landing)
-        right_content.add_widget(back_button)
-
         right_layout.add_widget(right_content)
 
     def on_pre_enter(self, *args):
@@ -194,14 +187,18 @@ class NotifsScreen(Screen):
         self.update_notifs(self.notif_posts)
 
     def update_notifs(self, notif_posts):
-        
-        self.notif_layout.add_widget(Label(
-                text="As notificações aparecerão aqui quando você seguir serviços.",
-                font_size=16,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint_y=None,
-                height=40
-        ))
+        self.notif_layout.clear_widgets()
+        if not notif_posts:
+            # Adiciona a mensagem apenas se não houver notificações
+            if not any(isinstance(child, Label) and "aparecerão aqui" in child.text for child in self.notif_layout.children):
+                self.notif_layout.add_widget(Label(
+                    text="As notificações dos serviços que você segue aparecerão aqui.",
+                    font_size=16,
+                    color=(0.5, 0.5, 0.5, 1),
+                    size_hint_y=None,
+                    height=40
+                ))
+            return
 
         for notif in notif_posts:
             post = BoxLayout(
@@ -271,6 +268,12 @@ class NotifsScreen(Screen):
         instance.post_rect.pos = instance.pos
         instance.post_rect.size = instance.size
 
+    def go_to_landing(self, instance):
+        if 'landing' in self.manager.screen_names:
+            self.manager.current = 'landing'
+        else:
+            print("Erro: tela 'landing' não encontrada")
+    
     def go_to_perfil(self, instance):
         if 'perfil' in self.manager.screen_names:
             self.manager.current = 'perfil'
@@ -289,20 +292,24 @@ class NotifsScreen(Screen):
         else:
             print("Erro: tela 'services' não encontrada")
 
+    def go_to_notifs(self, instance):
+            popup = Popup(
+                title='Aviso',
+                content=Label(text='Você já está na tela de notificações.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+
+    def go_to_login(self, instance):
+        if 'login' in self.manager.screen_names:
+            self.manager.current = 'login'
+        else:
+            print("Erro: tela 'login' não encontrada")
+
     def _on_profile_pic_touch(self, instance, touch):
         if instance.collide_point(*touch.pos):
             if 'perfil' in self.manager.screen_names:
                 self.manager.current = 'perfil'
             else:
                 print("Erro: tela 'perfil' não encontrada")
-
-    def go_to_landing(self, instance):
-        if 'landing' in self.manager.screen_names:
-            self.manager.current = "landing"
-            
-            
-    def go_to_login(self, instance):
-        if 'login' in self.manager.screen_names:
-            self.manager.current = 'login'
-        else:
-            print("Erro: tela 'login' não encontrada")

@@ -74,9 +74,10 @@ class ServicesScreen(Screen):
         left_layout.add_widget(Widget())
 
         buttons = [
-            ('Perfil', self.go_to_perfil),
-            ('Blog', self.go_to_blog),
-            ('Notificações', self.go_to_notifs),
+            ('Ir para lista de Serviços', self.go_to_landing),
+            ('Ir para lista de Serviços', self.go_to_blog),
+            ('Ir para Notificações', self.go_to_notifs),
+            ('Solicitar Serviço', self.go_to_services),
             ('Sair', self.go_to_login)
         ]
         for text, callback in buttons:
@@ -276,17 +277,6 @@ class ServicesScreen(Screen):
         create_button.bind(on_press=self.create_service)
         form_layout.add_widget(create_button)
 
-        # Botão para voltar ao blog
-        back_button = Button(
-            text='Voltar para Blog',
-            size_hint=(1, None),
-            height=50,
-            background_color=(0.1, 0.7, 0.3, 1),
-            color=(1, 1, 1, 1)
-        )
-        back_button.bind(on_press=self.go_to_blog)
-        form_layout.add_widget(back_button)
-
         right_content.add_widget(form_layout)
         right_layout.add_widget(right_content)
 
@@ -434,7 +424,15 @@ class ServicesScreen(Screen):
         if hasattr(app, "usuario_logado") and app.usuario_logado:
             usuario_nome = app.usuario_logado.get("username", "Usuário")
         self.user_label.text = f'Olá, {usuario_nome}!'
-
+        
+        
+    # ==================== Métodos de Navegação ====================
+    def go_to_landing(self, instance):
+        if 'landing' in self.manager.screen_names:
+            self.manager.current = 'landing'
+        else:
+            print("Erro: tela 'landing' não encontrada")
+    
     def go_to_perfil(self, instance):
         if 'perfil' in self.manager.screen_names:
             self.manager.current = 'perfil'
@@ -447,6 +445,15 @@ class ServicesScreen(Screen):
         else:
             print("Erro: tela 'blog' não encontrada")
 
+    def go_to_services(self, instance):
+            popup = Popup(
+                title='Aviso',
+                content=Label(text='Você já está na solicitação de serviços.'),
+                size_hint=(None, None),
+                size=(350, 180)
+            )
+            popup.open()
+
     def go_to_notifs(self, instance):
         if 'notifications' in self.manager.screen_names:
             self.manager.current = 'notifications'
@@ -458,6 +465,7 @@ class ServicesScreen(Screen):
             self.manager.current = 'login'
         else:
             print("Erro: tela 'login' não encontrada")
+
             
     def _on_profile_pic_touch(self, instance, touch):
         if instance.collide_point(*touch.pos):
