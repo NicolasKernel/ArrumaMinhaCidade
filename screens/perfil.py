@@ -11,6 +11,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 from kivy.uix.switch import Switch
 import os
+from kivy.app import App
 
 class PerfilScreen(Screen):
     def __init__(self, **kwargs):
@@ -21,8 +22,8 @@ class PerfilScreen(Screen):
 
         # Barra lateral esquerda para navegação
         left_layout = BoxLayout(orientation='vertical', size_hint_x=0.1, padding=10, spacing=10)
-        # Lado direito: GridLayout com 2 colunas
-        right_layout = GridLayout(cols=2, padding=10, spacing=10, size_hint_x=0.9)
+        # Lado direito: apenas uma coluna para exibir informações
+        right_layout = BoxLayout(orientation='vertical', padding=30, spacing=15, size_hint_x=0.9)
 
         main_layout.add_widget(left_layout)
         main_layout.add_widget(right_layout)
@@ -42,7 +43,7 @@ class PerfilScreen(Screen):
 
         # ==================== Barra Lateral Esquerda ====================
         title = Label(
-            text='Configurações',
+            text='Perfil',
             font_size=24,
             size_hint=(1, 0.2),
             color=(0, 0, 0, 1),
@@ -62,7 +63,7 @@ class PerfilScreen(Screen):
         
         # Botões para outras configurações
         buttons = [
-            ('Ir para Ir para Landing', self.go_to_landing),
+            ('Ir para Landing', self.go_to_landing),
             ('Ir para lista de Serviços', self.go_to_blog),
             ('Ir para Notificações', self.go_to_notifs),
             ('Solicitar Serviço', self.go_to_services),
@@ -78,95 +79,41 @@ class PerfilScreen(Screen):
             btn.bind(on_press=callback)
             left_layout.add_widget(btn)
 
-        # ==================== Conteúdo da Primeira Coluna ====================
-        right_content = BoxLayout(orientation='vertical', spacing=20, padding=30)
-        self.name_input = TextInput(
-            hint_text='Nome',
-            text='Usuário Exemplo',
-            size_hint_y=None,
-            height=30
-        )
-        self.email_input = TextInput(
-            hint_text='Email',
-            text='usuario@email.com',
-            size_hint_y=None,
-            height=30
-        )
-        self.cep_input = TextInput(
-            hint_text='CEP',
-            text='00000-000',
-            size_hint_y=None,
-            height=30
-        )
-        self.phone_input = TextInput(
-            hint_text='Telefone',
-            text='(00) 00000-0000',
-            size_hint_y=None,
-            height=30
-        )
-        
-        self.switch = Switch(
-            active=True,
-            size_hint_y=None,
-            height=50
-        )
-        
-        def callback(instance, value):
-            if value:
-                ScreenManager(transition=NoTransition())
-            else:
-                ScreenManager(transition=SlideTransition())
-    
-        
-        right_content.add_widget(Label(text='Nome:', color=(0,0,0,1), size_hint_y=None, height=25))
-        right_content.add_widget(self.name_input)
-        right_content.add_widget(Label(text='Email:', color=(0,0,0,1), size_hint_y=None, height=25))
-        right_content.add_widget(self.email_input)
-        right_content.add_widget(Label(text='CEP:', color=(0,0,0,1), size_hint_y=None, height=25))
-        right_content.add_widget(self.cep_input)
-        right_content.add_widget(Label(text='Telefone:', color=(0,0,0,1), size_hint_y=None, height=25))
-        right_content.add_widget(self.phone_input)
-        right_content.add_widget(Widget())
-        right_content.add_widget(Label(text='Configurações da Aplicação', font_size=20, color=(0, 0, 0, 1), size_hint_y=None, height=30))
-        right_content.add_widget(Label(text='Animação de slide ao passar as telas:', color=(0,0,0,1), size_hint_y=None, height=25))
-        right_content.add_widget(self.switch)
-        self.switch.bind(active=callback)
-        
+        # ==================== Conteúdo da Direita: Informações do Usuário ====================
+        self.info_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        right_layout.add_widget(self.info_layout)
 
-        # ==================== Conteúdo da Segunda Coluna ====================
-        right_side_content = BoxLayout(orientation='vertical', spacing=20, padding=30)
-        right_side_content.size_hint_x = 0.5
+    def on_pre_enter(self, *args):
+        self.info_layout.clear_widgets()
+        app = App.get_running_app()
+        usuario = getattr(app, "usuario_logado", None)
+        if usuario:
+            self.info_layout.add_widget(Label(
+                text="[b]Informações do Usuário:[/b]",
+                font_size=20,
+                color=(0, 0, 0, 1),
+                markup=True,
+                size_hint_y=None,
+                height=40
+            ))
+            for key, value in usuario.items():
+                self.info_layout.add_widget(Label(
+                    text=f"[b]{key}:[/b] {value}",
+                    font_size=16,
+                    color=(0.1, 0.1, 0.1, 1),
+                    markup=True,
+                    size_hint_y=None,
+                    height=30
+                ))
+        else:
+            self.info_layout.add_widget(Label(
+                text="Nenhum usuário logado.",
+                font_size=18,
+                color=(1, 0, 0, 1),
+                size_hint_y=None,
+                height=40
+            ))
 
-        # Imagem clicável no topo
-        profile_img = Image(
-            source=os.path.join('resources', 'logo.png'),
-            size_hint=(1, None),
-            height=120
-        )
-        def on_profile_img_touch(instance, touch):
-            if profile_img.collide_point(*touch.pos):
-                print("Imagem de perfil clicada!")
-        profile_img.bind(on_touch_down=on_profile_img_touch)
-        right_side_content.add_widget(profile_img)
-
-        # Espaço entre imagem e botão
-        right_side_content.add_widget(Widget())
-
-        # Botão de salvar alterações (movido para a segunda coluna)
-        save_btn = Button(
-            text='Salvar Alterações',
-            size_hint_y=None,
-            height=50,
-            background_color=(0.2, 0.6, 1, 1),
-            color=(1, 1, 1, 1)
-        )
-        save_btn.bind(on_press=self.save_profile)
-        right_side_content.add_widget(save_btn)
-
-        # Adiciona ambos ao GridLayout
-        right_layout.add_widget(right_content)
-        right_layout.add_widget(right_side_content)
-        
     # ==================== Métodos de Atualização ====================
     def _update_left_rect(self, instance, value):
         self.left_rect.pos = instance.pos
@@ -184,13 +131,13 @@ class PerfilScreen(Screen):
             print("Erro: tela 'landing' não encontrada")
     
     def go_to_perfil(self, instance):
-            popup = Popup(
-                title='Aviso',
-                content=Label(text='Você já está no seu perfil.'),
-                size_hint=(None, None),
-                size=(350, 180)
-            )
-            popup.open()
+        popup = Popup(
+            title='Aviso',
+            content=Label(text='Você já está no seu perfil.'),
+            size_hint=(None, None),
+            size=(350, 180)
+        )
+        popup.open()
 
     def go_to_blog(self, instance):
         if 'blog' in self.manager.screen_names:
@@ -215,10 +162,3 @@ class PerfilScreen(Screen):
             self.manager.current = 'login'
         else:
             print("Erro: tela 'login' não encontrada")
-    # ==================== Salvar Perfil ====================
-    def save_profile(self, instance):
-        nome = self.name_input.text
-        email = self.email_input.text
-        cep = self.cep_input.text
-        telefone = self.phone_input.text
-        print(f"Salvo: Nome={nome}, Email={email}, CEP={cep}, Telefone={telefone}")

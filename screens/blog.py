@@ -216,6 +216,8 @@ class BlogScreen(Screen):
         usuario_nome = "Usuário"
         if hasattr(app, "usuario_logado") and app.usuario_logado:
             usuario_nome = app.usuario_logado.get("username", "Usuário")
+        # Carrega os serviços seguidos do usuário logado
+            self.seguindo_servicos = set(app.usuario_logado.get("seguindo", []))
         self.user_label.text = f'Olá, {usuario_nome}!'
         self.load_services_from_json()
 

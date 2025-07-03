@@ -245,45 +245,35 @@ class AdminScreen(Screen):
         except (FileNotFoundError, json.JSONDecodeError):
             users_data = []
 
+        # Lista apenas informações básicas dos usuários
         for user in users_data:
-            user_info = BoxLayout(orientation='horizontal', size_hint_y=None, height=40)
-            user_info.add_widget(Label(
-                text=f'Nome: {user.get("username", "")}, Email: {user.get("email", "")}, '
-                     f'Telefone: {user.get("telefone", "")}, CPF: {user.get("cpf", "")}, '
-                     f'CEP: {user.get("cep", "")}, Bairro: {user.get("bairro", "")}, '
-                     f'Admin: {user.get("is_admin", False)}',
-                size_hint_x=0.8
-            ))
-            edit_btn = Button(
-                text='Editar',
-                size_hint_x=0.2,
+            user_info = Label(
+                text=f'Nome: {user.get("username", "")} | Email: {user.get("email", "")} | Bairro: {user.get("bairro", "")}',
                 size_hint_y=None,
                 height=30,
-                background_color=(1, 0.4, 0.4, 1),  # vermelho leve
-                color=(0.3, 0, 0, 1)
+                font_size=15,
+                color=(0, 0, 0, 1)
             )
-            edit_btn.bind(on_press=lambda _, u=user: self.pre_fill_edit_form(u))
-            user_info.add_widget(edit_btn)
             self.info_layout.add_widget(user_info)
 
         self.info_layout.add_widget(Label(text='Serviços', size_hint_y=None, height=30, font_size=18))
-        for request in self.requests:
-            request_info = BoxLayout(orientation='horizontal', size_hint_y=None, height=40)
-            request_info.add_widget(Label(
-                text=f'ID: {request["id"]}, Serviço: {request["servico"]}, Data: {request["data"]}',
-                size_hint_x=0.8
-            ))
-            delete_btn = Button(
-                text='Excluir',
-                size_hint_x=0.2,
+
+        # Carrega serviços do JSON igual ao BlogScreen
+        try:
+            with open("services_updates.json", "r", encoding="utf-8") as f:
+                services_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            services_data = {}
+
+        for service_title, service in services_data.items():
+            service_info = Label(
+                text=f'Título: {service.get("title", service_title)} | Tipo: {service.get("type", "")} | Status: {service.get("status", "")}',
                 size_hint_y=None,
                 height=30,
-                background_color=(1, 0.4, 0.4, 1),
-                color=(1, 1, 1, 1)
+                font_size=15,
+                color=(0, 0, 0, 1)
             )
-            delete_btn.bind(on_press=lambda _, r=request: self.pre_fill_delete_form(r))
-            request_info.add_widget(delete_btn)
-            self.info_layout.add_widget(request_info)
+            self.info_layout.add_widget(service_info)
 
     def pre_fill_edit_form(self, user):
         popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10, size_hint=(None, None), size=(300, 250))
