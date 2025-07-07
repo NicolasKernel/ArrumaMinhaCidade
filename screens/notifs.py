@@ -10,10 +10,17 @@ from kivy.uix.widget import Widget
 from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.app import App
-import os
 from kivy.uix.popup import Popup
 import json
 import datetime
+import sys
+import os
+
+def resource_path(relative_path):
+    """Retorna o caminho absoluto para uso com PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class NotifsScreen(Screen):
     def __init__(self, **kwargs):
@@ -54,7 +61,7 @@ class NotifsScreen(Screen):
         left_layout.add_widget(title)
 
         logo = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(1, None),
             height=120,
             fit_mode='contain'
@@ -105,7 +112,7 @@ class NotifsScreen(Screen):
         top_bar.add_widget(self.user_label)
 
         profile_pic = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(None, None),
             size=(60, 60),
             fit_mode='contain'

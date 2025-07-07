@@ -8,9 +8,16 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 import os
+import sys
 import json
 from models.user import User
 from utils.validation import validate_cep, validate_email, validate_cpf
+
+def resource_path(relative_path):
+    """Retorna o caminho absoluto para uso com PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class CadastroScreen(Screen):
     def __init__(self, **kwargs):
@@ -29,7 +36,7 @@ class CadastroScreen(Screen):
 
         # Logo
         logo = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(1, None),
             height=120,
             fit_mode='contain'

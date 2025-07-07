@@ -9,7 +9,14 @@ from kivy.graphics import Color, Rectangle
 from kivy.uix.popup import Popup
 from kivy.app import App
 import os
-import json 
+import json
+import sys
+
+def resource_path(relative_path):
+    """Retorna o caminho absoluto para uso com PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class LoginScreen(Screen):
     def __init__(self, **kwargs):
@@ -27,7 +34,7 @@ class LoginScreen(Screen):
 
         # Logo
         logo = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(1, None),
             height=120,
             fit_mode='contain'

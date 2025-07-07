@@ -12,10 +12,18 @@ from kivy.uix.popup import Popup
 from kivy.uix.filechooser import FileChooserListView
 from kivy.app import App
 import os
+import sys
 import json
 from datetime import datetime
 import random
 import string
+import shutil
+
+def resource_path(relative_path):
+    """Retorna o caminho absoluto para uso com PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class ServicesScreen(Screen):
     def __init__(self, **kwargs):
@@ -64,7 +72,7 @@ class ServicesScreen(Screen):
         left_layout.add_widget(title)
 
         logo = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(1, None),
             height=120,
             fit_mode='contain'
@@ -113,7 +121,7 @@ class ServicesScreen(Screen):
         top_bar.add_widget(self.user_label)
 
         profile_pic = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(None, None),
             size=(60, 60),
             fit_mode='contain'
@@ -370,6 +378,29 @@ class ServicesScreen(Screen):
         # Obtém a data atual
         current_date = datetime.now().strftime('%d/%m/%Y')
 
+        # --- NOVO: Copia a imagem para a pasta images/ do app, se for um arquivo válido e diferente do default ---
+        if image_path and os.path.isfile(image_path):
+            images_dir = resource_path('images')
+            if not os.path.exists(images_dir):
+                os.makedirs(images_dir)
+            # Garante nome único para evitar sobrescrever
+            img_name = f"{service_id}_{os.path.basename(image_path)}"
+            dest_path = os.path.join(images_dir, img_name)
+            try:
+                shutil.copy(image_path, dest_path)
+                image_path = os.path.join('images', img_name)
+            except Exception as e:
+                popup = Popup(
+                    title='Erro',
+                    content=Label(text=f'Erro ao copiar imagem: {e}'),
+                    size_hint=(None, None),
+                    size=(400, 200)
+                )
+                popup.open()
+                return
+        else:
+            image_path = os.path.join('images', 'default.png')
+
         # Cria o novo serviço
         new_service = {
             'id': service_id,
@@ -377,7 +408,7 @@ class ServicesScreen(Screen):
             'description': description,
             'date': current_date,
             'address': full_address,
-            'image': image_path if image_path else os.path.join('images', 'default.png'),
+            'image': image_path,
             'status': 'Em análise',
             'type': service_type,
             'last_update': f"{current_date} 00:00"

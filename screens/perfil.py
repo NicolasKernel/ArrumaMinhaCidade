@@ -12,6 +12,13 @@ from kivy.uix.popup import Popup
 from kivy.uix.switch import Switch
 import os
 from kivy.app import App
+import sys
+
+def resource_path(relative_path):
+    """Retorna o caminho absoluto para uso com PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class PerfilScreen(Screen):
     def __init__(self, **kwargs):
@@ -52,7 +59,7 @@ class PerfilScreen(Screen):
         left_layout.add_widget(title)
 
         logo = Image(
-            source=os.path.join('resources', 'logo.png'),
+            source=resource_path(os.path.join('resources', 'logo.png')),
             size_hint=(1, None),
             height=150,
             fit_mode='contain'
