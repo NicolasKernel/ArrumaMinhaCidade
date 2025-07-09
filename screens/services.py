@@ -9,7 +9,6 @@ from kivy.uix.widget import Widget
 from kivy.uix.spinner import Spinner
 from kivy.graphics import Color, Rectangle
 from kivy.uix.popup import Popup
-from kivy.uix.filechooser import FileChooserListView
 from kivy.app import App
 import os
 import sys
@@ -18,6 +17,7 @@ from datetime import datetime
 import random
 import string
 import shutil
+from tkinter import filedialog, Tk
 
 def resource_path(relative_path):
     """Retorna o caminho absoluto para uso com PyInstaller."""
@@ -317,39 +317,38 @@ class ServicesScreen(Screen):
                 return new_id
 
     def show_file_chooser(self, instance):
-        """Abre um popup com o FileChooser para selecionar uma imagem."""
-        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        file_chooser = FileChooserListView(
-            filters=['*.png', '*.jpg', '*.jpeg'],
-            path=os.path.expanduser('~')  # Começa no diretório do usuário
-        )
-        content.add_widget(file_chooser)
-
-        button_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
-        select_button = Button(text='Selecionar')
-        cancel_button = Button(text='Cancelar')
-
-        button_layout.add_widget(select_button)
-        button_layout.add_widget(cancel_button)
-        content.add_widget(button_layout)
-
-        popup = Popup(
-            title='Selecionar Imagem',
-            content=content,
-            size_hint=(0.9, 0.9)
-        )
-
-        def on_select(instance):
-            if file_chooser.selection:
-                self.image_input.text = file_chooser.selection[0]
-                popup.dismiss()
-
-        def on_cancel(instance):
-            popup.dismiss()
-
-        select_button.bind(on_press=on_select)
-        cancel_button.bind(on_press=on_cancel)
-        popup.open()
+        """Abre um seletor de arquivos usando tkinter."""
+        try:
+            # Inicializa o Tkinter e esconde a janela principal
+            root = Tk()
+            root.withdraw()
+            
+            # Abre o seletor de arquivos
+            file_path = filedialog.askopenfilename(
+                filetypes=[("Imagens", "*.png *.jpg *.jpeg")]
+            )
+            
+            # Destrói a janela do Tkinter
+            root.destroy()
+            
+            if file_path:
+                self.image_input.text = file_path
+            else:
+                popup = Popup(
+                    title='Aviso',
+                    content=Label(text='Nenhuma imagem selecionada!'),
+                    size_hint=(None, None),
+                    size=(400, 200)
+                )
+                popup.open()
+        except Exception as e:
+            popup = Popup(
+                title='Erro',
+                content=Label(text=f'Erro ao selecionar imagem: {str(e)}'),
+                size_hint=(None, None),
+                size=(400, 200)
+            )
+            popup.open()
 
     def create_service(self, instance):
         """Cria um novo serviço e salva no JSON."""
@@ -378,12 +377,10 @@ class ServicesScreen(Screen):
         # Obtém a data atual
         current_date = datetime.now().strftime('%d/%m/%Y')
 
-        # --- NOVO: Copia a imagem para a pasta images/ do app, se for um arquivo válido e diferente do default ---
         if image_path and os.path.isfile(image_path):
-            images_dir = resource_path('images')
+            images_dir = os.path.join(os.path.abspath("."), 'images')
             if not os.path.exists(images_dir):
                 os.makedirs(images_dir)
-            # Garante nome único para evitar sobrescrever
             img_name = f"{service_id}_{os.path.basename(image_path)}"
             dest_path = os.path.join(images_dir, img_name)
             try:
@@ -456,7 +453,6 @@ class ServicesScreen(Screen):
             usuario_nome = app.usuario_logado.get("username", "Usuário")
         self.user_label.text = f'Olá, {usuario_nome}!'
         
-        
     # ==================== Métodos de Navegação ====================
     def go_to_landing(self, instance):
         if 'landing' in self.manager.screen_names:
@@ -497,7 +493,6 @@ class ServicesScreen(Screen):
         else:
             print("Erro: tela 'login' não encontrada")
 
-            
     def _on_profile_pic_touch(self, instance, touch):
         if instance.collide_point(*touch.pos):
             if 'perfil' in self.manager.screen_names:
