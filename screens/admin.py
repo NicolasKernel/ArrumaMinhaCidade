@@ -152,16 +152,6 @@ class AdminScreen(Screen):
 
         right_layout.add_widget(right_content)
 
-        # DADOS SIMULADOS EDITAR PARA TOMAR DOS JSON
-        self.users = [
-            {"id": 1, "username": "joao", "cidade": "São Paulo"},
-            {"id": 2, "username": "maria", "cidade": "Rio de Janeiro"}
-        ]
-        self.requests = [
-            {"id": 1, "servico": "Limpeza", "data": "2025-06-20"},
-            {"id": 2, "servico": "Pavimentação", "data": "2025-06-22"}
-        ]
-
     # ==================== Métodos de Atualização ====================
 
     def _update_left_rect(self, instance, value):
@@ -274,7 +264,7 @@ class AdminScreen(Screen):
 
         for service_title, service in services_data.items():
             service_info = Label(
-                text=f'Título: {service.get("title", service_title)} | Tipo: {service.get("type", "")} | Status: {service.get("status", "")}',
+                text=f'ID: {service.get("id")} | Título: {service.get("title", service_title)} | Tipo: {service.get("type", "")} | Status: {service.get("status", "")}',
                 size_hint_y=None,
                 height=30,
                 font_size=15,

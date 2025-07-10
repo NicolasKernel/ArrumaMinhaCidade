@@ -102,7 +102,7 @@
     "ArvoreCaida": {
         "id": "321JKL",
         "title": "Arvore Caida",
-        "description": "Arvore caída bloqueando a calcada e dificultando a passagem.",
+        "description": "Arvore ca\u00c3\u00adda bloqueando a calcada e dificultando a passagem.",
         "date": "22/06/2025",
         "address": "Rua das Acacias, 10, Primavera",
         "image": "images/default.png",
@@ -123,5 +123,16 @@
                 "date": "26/06/2025 13:30"
             }
         ]
+    },
+    "bbbbbbbbbbb": {
+        "id": "970EAK",
+        "title": "bbbbbbbbbbb",
+        "description": "bbbbbbbbbbbbbbb",
+        "date": "09/07/2025",
+        "address": "bbbbbbbbbbbbbbbbbb, bbbbbbbbbbbbbbbb, bbbbbbbbbbbbbbbbbbbbbb",
+        "image": "images\\970EAK_images.jpg",
+        "status": "Em an\u00e1lise",
+        "type": "Infraestrutura e Mobilidade",
+        "last_update": "09/07/2025 00:00"
     }
 }
