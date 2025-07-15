@@ -1,321 +1,398 @@
-from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.image import Image
-from kivy.graphics import Color, Rectangle
-from kivy.uix.widget import Widget
-from kivy.uix.spinner import Spinner
-from kivy.uix.textinput import TextInput
-from kivy.app import App
-from kivy.uix.popup import Popup
-import json
-import datetime
-import sys
-import os
+from kivy.uix.screenmanager import Screen # Importa a classe Screen do módulo kivy.uix.screenmanager, que permite criar múltiplas telas e alternar entre elas.
+from kivy.uix.boxlayout import BoxLayout # Importa BoxLayout do módulo kivy.uix.boxlayout, um layout que organiza os widgets em uma única linha, seja horizontalmente ou verticalmente.
+from kivy.uix.gridlayout import GridLayout # Importa GridLayout do módulo kivy.uix.gridlayout, um layout que organiza os widgets em uma grade de linhas e colunas.
+from kivy.uix.label import Label # Importa Label do módulo kivy.uix.label, usado para exibir texto estático na interface do usuário.
+from kivy.uix.button import Button # Importa Button do módulo kivy.uix.button, um widget que permite a interação do usuário através de cliques.
+from kivy.uix.scrollview import ScrollView # Importa ScrollView do módulo kivy.uix.scrollview, que permite rolar o conteúdo de um widget quando ele excede o tamanho disponível na tela.
+from kivy.uix.image import Image # Importa Image do módulo kivy.uix.image, usado para exibir imagens na interface.
+from kivy.graphics import Color, Rectangle # Importa Color e Rectangle do módulo kivy.graphics. Color é usado para definir a cor de elementos gráficos e Rectangle para desenhar retângulos.
+from kivy.uix.widget import Widget # Importa Widget do módulo kivy.uix.widget, a classe base para todos os elementos visuais na Kivy. Usado aqui como um espaçador flexível.
+from kivy.uix.spinner import Spinner # Importa Spinner do módulo kivy.uix.spinner, um widget de lista suspensa para seleção de opções.
+from kivy.uix.textinput import TextInput # Importa TextInput do módulo kivy.uix.textinput, um campo de entrada de texto onde o usuário pode digitar.
+from kivy.app import App # Importa App do módulo kivy.app, a classe principal para qualquer aplicação Kivy.
+from kivy.uix.popup import Popup # Importa Popup do módulo kivy.uix.popup, uma pequena janela flutuante usada para exibir mensagens ou solicitar entradas.
+import json # Importa o módulo json, para trabalhar com dados no formato JSON (serialização e desserialização).
+import datetime # Importa o módulo datetime, para trabalhar com datas e horas.
+import sys # Importa o módulo sys, que fornece acesso a parâmetros e funções específicas do sistema. Usado para identificar se o aplicativo está rodando via PyInstaller.
+import os # Importa o módulo os, que fornece funções para interagir com o sistema operacional, como manipulação de caminhos de arquivo.
 
 def resource_path(relative_path):
-    """Retorna o caminho absoluto para uso com PyInstaller."""
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+    """
+    Retorna o caminho absoluto para recursos (imagens, etc.) quando o aplicativo é empacotado com PyInstaller.
+    Se não estiver rodando como um executável PyInstaller, retorna o caminho relativo ao diretório atual do script.
+    Isso garante que os recursos sejam encontrados tanto em desenvolvimento quanto no aplicativo compilado.
+    """
+    if hasattr(sys, '_MEIPASS'): # Verifica se o aplicativo está sendo executado como um executável PyInstaller. '_MEIPASS' é um atributo adicionado pelo PyInstaller.
+        return os.path.join(sys._MEIPASS, relative_path) # Se sim, retorna o caminho dentro do diretório temporário criado pelo PyInstaller.
+    return os.path.join(os.path.abspath("."), relative_path) # Caso contrário, retorna o caminho relativo ao diretório onde o script está sendo executado.
 
 class NotifsScreen(Screen):
+    """
+    Representa a tela de Notificações no aplicativo.
+    Esta tela exibe atualizações e informações sobre os serviços que o usuário está seguindo.
+    """
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        """
+        Inicializa a tela de Notificações, configurando seu layout e componentes visuais.
+        """
+        super().__init__(**kwargs) # Chama o construtor da classe base Screen.
 
-        # Layout principal horizontal
+        # Layout principal da tela, organizado horizontalmente. Ele dividirá a tela em uma barra lateral e uma área de conteúdo principal.
         main_layout = BoxLayout(orientation='horizontal', spacing=10)
 
-        # Barra lateral esquerda para navegação
+        # Barra lateral esquerda: Um BoxLayout vertical, que ocupará 10% da largura da tela. Contém botões de navegação e o logo.
         left_layout = BoxLayout(orientation='vertical', size_hint_x=0.1, padding=10, spacing=10)
+        # Área da direita: Um GridLayout com 1 coluna e 2 linhas. Ocupará 90% da largura. A linha superior será para informações do usuário e a inferior para o conteúdo principal.
         right_layout = GridLayout(cols=1, rows=2, size_hint_x=0.9, padding=10, spacing=10)
 
+        # Adiciona os layouts esquerdo e direito ao layout principal.
         main_layout.add_widget(left_layout)
         main_layout.add_widget(right_layout)
+        # Adiciona o layout principal à própria tela de Notificações.
         self.add_widget(main_layout)
 
-        # Fundo para o left_layout
+        # Configuração do fundo para o `left_layout` (barra lateral).
+        # Usa `canvas.before` para desenhar um retângulo antes dos widgets serem desenhados, servindo como fundo.
         with left_layout.canvas.before:
-            Color(0.9, 0.9, 0.9, 1)
-            self.left_rect = Rectangle(size=left_layout.size, pos=left_layout.pos)
+            Color(0.9, 0.9, 0.9, 1) # Define a cor do fundo como cinza claro (RGB + Alpha).
+            self.left_rect = Rectangle(size=left_layout.size, pos=left_layout.pos) # Cria um retângulo com o tamanho e posição iniciais do left_layout.
+        # Vincula os eventos de `size` (tamanho) e `pos` (posição) do `left_layout` para atualizar o retângulo de fundo.
         left_layout.bind(size=self._update_left_rect, pos=self._update_left_rect)
 
-        # Fundo para o right_layout
+        # Configuração do fundo para o `right_layout` (área de conteúdo principal).
         with right_layout.canvas.before:
-            Color(1, 1, 1, 1)
-            self.right_rect = Rectangle(size=right_layout.size, pos=right_layout.pos)
+            Color(1, 1, 1, 1) # Define a cor do fundo como branco.
+            self.right_rect = Rectangle(size=right_layout.size, pos=right_layout.pos) # Cria um retângulo com o tamanho e posição iniciais do right_layout.
+        # Vincula os eventos de `size` e `pos` do `right_layout` para atualizar o retângulo de fundo.
         right_layout.bind(size=self._update_right_rect, pos=self._update_right_rect)
 
-        # ==================== Barra Lateral Esquerda ====================
+        # ==================== Conteúdo da Barra Lateral Esquerda ====================
+        # Título da barra lateral.
         title = Label(
-            text='Notificações',
-            font_size=22,
-            size_hint=(1, None),
-            height=60,
-            color=(0, 0, 0, 1),
-            font_name='Roboto'
+            text='Notificações', # Texto exibido.
+            font_size=22, # Tamanho da fonte.
+            size_hint=(1, None), # Ocupa 100% da largura disponível na barra lateral, altura é fixa.
+            height=60, # Altura fixa do label.
+            color=(0, 0, 0, 1), # Cor do texto preta.
+            font_name='Roboto' # Fonte utilizada (assumindo que 'Roboto' esteja disponível).
         )
-        left_layout.add_widget(title)
+        left_layout.add_widget(title) # Adiciona o título à barra lateral.
 
+        # Logo da aplicação.
         logo = Image(
-            source=resource_path(os.path.join('resources', 'logo.png')),
-            size_hint=(1, None),
-            height=120,
-            fit_mode='contain'
+            source=resource_path(os.path.join('resources', 'logo.png')), # Caminho da imagem do logo, usando `resource_path` para compatibilidade com PyInstaller.
+            size_hint=(1, None), # Ocupa 100% da largura, altura é fixa.
+            height=120, # Altura fixa da imagem.
+            fit_mode='contain' # A imagem será redimensionada para caber dentro de suas proporções, sem cortar.
         )
-        left_layout.add_widget(logo)
+        left_layout.add_widget(logo) # Adiciona o logo à barra lateral.
         
-        left_layout.add_widget(Widget())
+        left_layout.add_widget(Widget()) # Adiciona um Widget genérico que atua como um "espaçador" flexível. Ele se expandirá para preencher o espaço vertical disponível, empurrando os botões de navegação para a parte inferior da barra lateral.
 
+        # Lista de botões de navegação na barra lateral. Cada tupla contém o texto do botão e a função de callback associada.
         buttons = [
-            ('Ir para Landing', self.go_to_landing),
-            ('Ir para lista de Serviços', self.go_to_blog),
-            ('Ir para Notificações', self.go_to_notifs),
-            ('Solicitar Serviço', self.go_to_services),
-            ('Sair', self.go_to_login)
+            ('Ir para Landing', self.go_to_landing), # Navega para a tela "Landing".
+            ('Ir para lista de Serviços', self.go_to_blog), # Navega para a tela "Blog" (que lista serviços/posts).
+            ('Ir para Notificações', self.go_to_notifs), # Navega para a própria tela de Notificações (exibirá um popup de aviso).
+            ('Solicitar Serviço', self.go_to_services), # Navega para a tela "Services" (onde o usuário pode solicitar um novo serviço).
+            ('Sair', self.go_to_login) # Navega para a tela "Login" (efetivamente "saindo" do aplicativo ou da sessão atual).
         ]
+        # Loop para criar e adicionar cada botão à barra lateral.
         for text, callback in buttons:
             btn = Button(
-                text=text,
-                size_hint=(1, 0.5),
-                background_color=(0.1, 0.7, 0.3, 1),
-                color=(1, 1, 1, 1)
+                text=text, # Texto do botão.
+                size_hint=(1, 0.5), # Ocupa 100% da largura da barra lateral, e 50% do espaço vertical disponível para os botões.
+                background_color=(0.1, 0.7, 0.3, 1), # Cor de fundo do botão (verde).
+                color=(1, 1, 1, 1) # Cor do texto do botão (branco).
             )
-            btn.bind(on_press=callback)
-            left_layout.add_widget(btn)
+            btn.bind(on_press=callback) # Associa a função de callback ao evento de clique do botão.
+            left_layout.add_widget(btn) # Adiciona o botão à barra lateral.
 
-        # ==================== Filtros no topo da área direita ====================
-
+        # ==================== Barra Superior na Área Direita (informações do usuário) ====================
         top_bar = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=80,
-            padding=10,
-            spacing=10
+            orientation='horizontal', # Organiza os widgets horizontalmente.
+            size_hint_y=None, # Altura fixa.
+            height=80, # Altura da barra superior.
+            padding=10, # Preenchimento interno.
+            spacing=10 # Espaçamento entre os widgets.
         )
 
-        top_bar.add_widget(Widget(size_hint_x=1))
+        top_bar.add_widget(Widget(size_hint_x=1)) # Adiciona um Widget flexível que empurra o `user_label` e `profile_pic` para a direita.
         
         self.user_label = Label(
-            text=f'',
-            font_size=20,
-            color=(0, 0, 0, 1),
-            size_hint=(None, None),
-            size=(200, 60),
-            halign='right',
-            valign='middle'
+            text=f'', # Texto inicial vazio, será preenchido dinamicamente com o nome do usuário.
+            font_size=20, # Tamanho da fonte.
+            color=(0, 0, 0, 1), # Cor do texto preta.
+            size_hint=(None, None), # Tamanho fixo para o label.
+            size=(200, 60), # Largura e altura fixas.
+            halign='right', # Alinhamento horizontal do texto à direita.
+            valign='middle' # Alinhamento vertical do texto ao meio.
         )
-        self.user_label.bind(size=self.user_label.setter('text_size'))
-        top_bar.add_widget(self.user_label)
+        self.user_label.bind(size=self.user_label.setter('text_size')) # Garante que o texto se adapte ao tamanho do label.
+        top_bar.add_widget(self.user_label) # Adiciona o label do usuário à barra superior.
 
         profile_pic = Image(
-            source=resource_path(os.path.join('resources', 'logo.png')),
-            size_hint=(None, None),
-            size=(60, 60),
-            fit_mode='contain'
+            source=resource_path(os.path.join('resources', 'logo.png')), # Imagem do perfil (atualmente usa o logo).
+            size_hint=(None, None), # Tamanho fixo para a imagem.
+            size=(60, 60), # Largura e altura fixas.
+            fit_mode='contain' # A imagem será redimensionada para caber sem cortar.
         )
-        profile_pic.bind(on_touch_down=self._on_profile_pic_touch)
-        top_bar.add_widget(profile_pic)
-        self.profile_pic = profile_pic
+        profile_pic.bind(on_touch_down=self._on_profile_pic_touch) # Vincula um evento de toque à imagem do perfil para navegação.
+        top_bar.add_widget(profile_pic) # Adiciona a imagem do perfil à barra superior.
+        self.profile_pic = profile_pic # Armazena uma referência à imagem do perfil para uso posterior, se necessário.
 
-        right_layout.add_widget(top_bar)
+        right_layout.add_widget(top_bar) # Adiciona a barra superior (com info do usuário) à primeira linha do `right_layout`.
 
-        # ==================== Conteúdo Principal Direita ====================
-        right_content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        # ==================== Conteúdo Principal da Área Direita (lista de notificações) ====================
+        right_content = BoxLayout(orientation='vertical', spacing=10, padding=10) # Layout vertical para o conteúdo principal.
 
-        # Título da tela
+        # Título da seção de notificações.
         title = Label(
-            text='Notificações dos Serviços que você segue',
-            font_size=24,
-            size_hint_y=None,
-            height=50,
-            color=(0, 0, 0, 1),
-            font_name='Roboto',
-            halign='center',
-            text_size=(None, None)
+            text='Notificações dos Serviços que você segue', # Texto do título.
+            font_size=24, # Tamanho da fonte.
+            size_hint_y=None, # Altura fixa.
+            height=50, # Altura do label.
+            color=(0, 0, 0, 1), # Cor do texto preta.
+            font_name='Roboto', # Fonte.
+            halign='center', # Alinhamento horizontal centralizado.
+            text_size=(None, None) # O texto se ajustará ao tamanho do label.
         )
-        right_content.add_widget(title)
+        right_content.add_widget(title) # Adiciona o título ao conteúdo da direita.
 
-        # ScrollView para a lista de notificações
-        self.scroll = ScrollView(size_hint=(1, 1))
+        # ScrollView para a lista de notificações, permitindo rolagem se houver muitas.
+        self.scroll = ScrollView(size_hint=(1, 1)) # Ocupa todo o espaço restante no `right_content`.
         self.notif_layout = BoxLayout(
-            orientation='vertical',
-            size_hint_y=None,
-            spacing=15,
-            padding=[10, 10, 10, 10]
+            orientation='vertical', # Organiza as notificações verticalmente.
+            size_hint_y=None, # A altura será ajustada automaticamente com base no conteúdo (`minimum_height`).
+            spacing=15, # Espaçamento entre as notificações individuais.
+            padding=[10, 10, 10, 10] # Preenchimento interno do layout.
         )
+        # Vincula o `minimum_height` do `notif_layout` à sua própria `height`, fazendo com que ele se expanda para conter todos os widgets filhos.
         self.notif_layout.bind(minimum_height=self.notif_layout.setter('height'))
 
+        # Desenha um fundo cinza claro para o `notif_layout`.
         with self.notif_layout.canvas.before:
-            Color(0.95, 0.95, 0.95, 1)
-            self.notif_rect = Rectangle(size=self.notif_layout.size, pos=self.notif_layout.pos)
+            Color(0.95, 0.95, 0.95, 1) # Cor cinza bem claro.
+            self.notif_rect = Rectangle(size=self.notif_layout.size, pos=self.notif_layout.pos) # Cria o retângulo de fundo.
+        # Vincula os eventos de `size` e `pos` do `notif_layout` para atualizar o retângulo de fundo.
         self.notif_layout.bind(size=self._update_notif_rect, pos=self._update_notif_rect)
 
-        self.scroll.add_widget(self.notif_layout)
-        right_content.add_widget(self.scroll)
+        self.scroll.add_widget(self.notif_layout) # Adiciona o `notif_layout` (onde as notificações são colocadas) ao ScrollView.
+        right_content.add_widget(self.scroll) # Adiciona o ScrollView ao conteúdo da direita.
 
-        right_layout.add_widget(right_content)
+        right_layout.add_widget(right_content) # Adiciona o `right_content` (que inclui o título e o ScrollView de notificações) à segunda linha do `right_layout`.
 
     def on_pre_enter(self, *args):
-        app = App.get_running_app()
-        usuario_nome = "Usuário"
-        if hasattr(app, "usuario_logado") and app.usuario_logado:
-            usuario_nome = app.usuario_logado.get("username", "Usuário")
-        self.user_label.text = f'{usuario_nome}!'
-        self.notif_posts = []
-        if app.usuario_logado and "seguindo" in app.usuario_logado:
-            try:
-                with open("services_updates.json", "r", encoding="utf-8") as f:
-                    all_services = json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError):
-                all_services = {}
+        """
+        Este método é chamado automaticamente pelo ScreenManager pouco antes da tela se tornar a tela atual.
+        Ele é usado para carregar e exibir as notificações relevantes para o usuário logado.
+        """
+        app = App.get_running_app() # Obtém a instância do aplicativo Kivy em execução para acessar dados globais (como o usuário logado).
+        usuario_nome = "Usuário" # Define um nome de usuário padrão.
+        if hasattr(app, "usuario_logado") and app.usuario_logado: # Verifica se existe um atributo 'usuario_logado' no objeto App e se ele não é nulo.
+            usuario_nome = app.usuario_logado.get("username", "Usuário") # Se houver um usuário logado, tenta obter o nome de usuário; caso contrário, mantém o padrão.
+        self.user_label.text = f'{usuario_nome}!' # Atualiza o texto do label de boas-vindas com o nome do usuário.
 
+        self.notif_posts = [] # Inicializa uma lista vazia para armazenar as notificações a serem exibidas.
+        if app.usuario_logado and "seguindo" in app.usuario_logado: # Verifica se há um usuário logado e se ele tem uma lista de serviços "seguindo".
+            try:
+                # Tenta abrir e carregar o arquivo JSON que contém todos os serviços e suas atualizações.
+                with open("services_updates.json", "r", encoding="utf-8") as f:
+                    all_services = json.load(f) # Carrega o conteúdo JSON para um dicionário.
+            except (FileNotFoundError, json.JSONDecodeError):
+                all_services = {} # Se o arquivo não for encontrado ou estiver corrompido, inicializa `all_services` como um dicionário vazio.
+
+            # Itera sobre todos os serviços disponíveis no arquivo JSON.
             for service in all_services.values():
-                service_id = service.get("id")
+                service_id = service.get("id") # Obtém o ID do serviço.
+                # Verifica se o ID do serviço existe e se o usuário logado está "seguindo" este serviço.
                 if service_id and service_id in app.usuario_logado["seguindo"]:
-                    updates = service.get("updates", [])
+                    updates = service.get("updates", []) # Obtém a lista de atualizações para este serviço (se existir, caso contrário, uma lista vazia).
+                    # Itera sobre cada atualização dentro do serviço.
                     for update in updates:
+                        # Adiciona os detalhes da notificação (ID do serviço, título do serviço, texto da atualização, data da atualização) à lista `notif_posts`.
                         self.notif_posts.append({
                             "id": service_id,
                             "title": service.get("title", ""),
                             "text": update.get("text", ""),
                             "date": update.get("date", "")
                         })
-        # Ordena por data decrescente (mais recente primeiro)
+        
+        # Ordena as notificações por data em ordem decrescente (as mais recentes primeiro).
         def parse_date(d):
+            """Função auxiliar para converter uma string de data/hora em um objeto datetime."""
             try:
-                return datetime.datetime.strptime(d, "%d/%m/%Y %H:%M")
+                return datetime.datetime.strptime(d, "%d/%m/%Y %H:%M") # Tenta analisar a data no formato "DD/MM/AAAA HH:MM".
             except Exception:
-                return datetime.datetime.min
-        self.notif_posts.sort(key=lambda x: parse_date(x.get("date", "")), reverse=True)
-        self.update_notifs(self.notif_posts)
+                return datetime.datetime.min # Em caso de erro na análise, retorna a data mínima para que essas entradas fiquem no final.
+        self.notif_posts.sort(key=lambda x: parse_date(x.get("date", "")), reverse=True) # Ordena a lista `notif_posts` usando a função `parse_date` como chave de ordenação.
+        self.update_notifs(self.notif_posts) # Chama o método para exibir as notificações na interface.
 
     def update_notifs(self, notif_posts):
-        self.notif_layout.clear_widgets()
-        if not notif_posts:
-            # Adiciona a mensagem apenas se não houver notificações
+        """
+        Atualiza o layout que exibe as notificações, removendo as antigas e adicionando as novas.
+        """
+        self.notif_layout.clear_widgets() # Remove todos os widgets (notificações) atualmente exibidos no `notif_layout`.
+        if not notif_posts: # Se a lista de notificações estiver vazia.
+            # Adiciona uma mensagem informando que não há notificações, mas apenas se a mensagem ainda não estiver lá.
             if not any(isinstance(child, Label) and "aparecerão aqui" in child.text for child in self.notif_layout.children):
                 self.notif_layout.add_widget(Label(
-                    text="As notificações dos serviços que você segue aparecerão aqui.",
-                    font_size=16,
-                    color=(0.5, 0.5, 0.5, 1),
-                    size_hint_y=None,
+                    text="As notificações dos serviços que você segue aparecerão aqui.", # Texto da mensagem.
+                    font_size=16, # Tamanho da fonte.
+                    color=(0.5, 0.5, 0.5, 1), # Cor do texto cinza.
+                    size_hint_y=None, # Altura fixa.
                     height=40
                 ))
-            return
+            return # Sai da função, pois não há notificações para exibir além da mensagem.
 
+        # Itera sobre cada notificação na lista fornecida (`notif_posts`).
         for notif in notif_posts:
+            # Cria um BoxLayout horizontal para cada notificação individual.
             post = BoxLayout(
-                orientation='horizontal',
-                size_hint_y=None,
-                height=80,
-                padding=[10, 5, 10, 5],
-                spacing=10
+                orientation='horizontal', # Widgets dentro deste BoxLayout serão organizados horizontalmente.
+                size_hint_y=None, # Altura fixa para cada notificação.
+                height=80, # Altura de cada "card" de notificação.
+                padding=[10, 5, 10, 5], # Preenchimento interno.
+                spacing=10 # Espaçamento entre os elementos dentro da notificação.
             )
+            # Desenha um fundo branco para cada "card" de notificação.
             with post.canvas.before:
-                Color(1, 1, 1, 1)
-                post.post_rect = Rectangle(size=post.size, pos=post.pos)
+                Color(1, 1, 1, 1) # Cor branca.
+                post.post_rect = Rectangle(size=post.size, pos=post.pos) # Cria o retângulo de fundo.
+            # Vincula os eventos de `size` e `pos` do `post` para atualizar o retângulo de fundo.
             post.bind(size=self._update_post_rect, pos=self._update_post_rect)
 
-            # Apenas os campos pedidos: ID, Título, Atualização do admin, Data
+            # Cria Labels para exibir os detalhes da notificação: ID, Título, Texto da Atualização e Data.
             id_label = Label(
-                text=f'ID: {notif.get("id", "")}',
+                text=f'ID: {notif.get("id", "")}', # Exibe o ID do serviço. `get` com valor padrão evita erros se a chave não existir.
                 font_size=12,
                 color=(0, 0, 0, 1),
-                size_hint_x=0.2,
-                halign='left',
-                valign='middle'
+                size_hint_x=0.2, # Ocupa 20% da largura do `post`.
+                halign='left', # Alinhamento horizontal à esquerda.
+                valign='middle' # Alinhamento vertical ao meio.
             )
             title_label = Label(
-                text=f'Título: {notif.get("title", "")}',
+                text=f'Título: {notif.get("title", "")}', # Exibe o título do serviço.
                 font_size=14,
                 color=(0, 0, 0, 1),
-                size_hint_x=0.3,
+                size_hint_x=0.3, # Ocupa 30% da largura.
                 halign='left',
                 valign='middle'
             )
             update_label = Label(
-                text=f'Atualização: {notif.get("text", "")}',
+                text=f'Atualização: {notif.get("text", "")}', # Exibe o texto da atualização.
                 font_size=12,
                 color=(0, 0, 0, 1),
-                size_hint_x=0.3,
+                size_hint_x=0.3, # Ocupa 30% da largura.
                 halign='left',
                 valign='middle'
             )
             date_label = Label(
-                text=f'Data: {notif.get("date", "")}',
+                text=f'Data: {notif.get("date", "")}', # Exibe a data da atualização.
                 font_size=12,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint_x=0.2,
+                color=(0.5, 0.5, 0.5, 1), # Cor cinza.
+                size_hint_x=0.2, # Ocupa 20% da largura.
                 halign='left',
                 valign='middle'
             )
+            # Vincula o `text_size` de cada label ao seu `size` para garantir que o texto se ajuste corretamente.
             for lbl in [id_label, title_label, update_label, date_label]:
                 lbl.bind(size=lbl.setter('text_size'))
-                post.add_widget(lbl)
+                post.add_widget(lbl) # Adiciona cada label ao `post` (o BoxLayout da notificação individual).
 
-            self.notif_layout.add_widget(post)
+            self.notif_layout.add_widget(post) # Adiciona o `post` (o "card" de notificação) ao `notif_layout` principal.
 
     def _update_left_rect(self, instance, value):
+        """
+        Callback para atualizar a posição e o tamanho do retângulo de fundo do left_layout
+        sempre que o left_layout mudar de tamanho ou posição.
+        """
         self.left_rect.pos = instance.pos
         self.left_rect.size = instance.size
 
     def _update_right_rect(self, instance, value):
+        """
+        Callback para atualizar a posição e o tamanho do retângulo de fundo do right_layout
+        sempre que o right_layout mudar de tamanho ou posição.
+        """
         self.right_rect.pos = instance.pos
         self.right_rect.size = instance.size
 
     def _update_notif_rect(self, instance, value):
+        """
+        Callback para atualizar a posição e o tamanho do retângulo de fundo do notif_layout
+        sempre que o notif_layout mudar de tamanho ou posição.
+        """
         self.notif_rect.pos = instance.pos
         self.notif_rect.size = instance.size
 
     def _update_post_rect(self, instance, value):
+        """
+        Callback para atualizar a posição e o tamanho do retângulo de fundo de um post de notificação individual
+        sempre que o post mudar de tamanho ou posição.
+        """
         instance.post_rect.pos = instance.pos
         instance.post_rect.size = instance.size
 
+    # ==================== Métodos de Navegação ====================
+    # Estes métodos são responsáveis por alternar a tela atual no ScreenManager.
+    # Cada método verifica se a tela de destino existe no `self.manager.screen_names` antes de tentar mudar,
+    # para evitar erros se uma tela não estiver registrada.
+
     def go_to_landing(self, instance):
-        if 'landing' in self.manager.screen_names:
-            self.manager.current = 'landing'
+        """Navega para a tela 'landing'."""
+        if 'landing' in self.manager.screen_names: # Verifica se a tela 'landing' está registrada no ScreenManager.
+            self.manager.current = 'landing' # Define a tela 'landing' como a tela atual.
         else:
-            print("Erro: tela 'landing' não encontrada")
+            print("Erro: tela 'landing' não encontrada") # Imprime um erro se a tela não for encontrada.
     
     def go_to_perfil(self, instance):
+        """Navega para a tela 'perfil'."""
         if 'perfil' in self.manager.screen_names:
             self.manager.current = 'perfil'
         else:
             print("Erro: tela 'perfil' não encontrada")
 
     def go_to_blog(self, instance):
+        """Navega para a tela 'blog' (que provavelmente lista os serviços ou posts)."""
         if 'blog' in self.manager.screen_names:
             self.manager.current = 'blog'
         else:
             print("Erro: tela 'blog' não encontrada")
 
     def go_to_services(self, instance):
+        """Navega para a tela 'services' (onde o usuário pode solicitar um novo serviço)."""
         if 'services' in self.manager.screen_names:
             self.manager.current = 'services'
         else:
             print("Erro: tela 'services' não encontrada")
 
     def go_to_notifs(self, instance):
-            popup = Popup(
-                title='Aviso',
-                content=Label(text='Você já está na tela de notificações.'),
-                size_hint=(None, None),
-                size=(350, 180)
-            )
-            popup.open()
+        """
+        Este método é chamado quando o botão 'Ir para Notificações' é clicado.
+        Como o usuário já está nesta tela, um Popup de aviso é exibido.
+        """
+        popup = Popup(
+            title='Aviso', # Título do popup.
+            content=Label(text='Você já está na tela de notificações.'), # Mensagem exibida no popup.
+            size_hint=(None, None), # Tamanho fixo para o popup.
+            size=(350, 180) # Largura e altura do popup.
+        )
+        popup.open() # Abre o popup.
 
     def go_to_login(self, instance):
+        """Navega para a tela 'login' (usada para sair ou fazer logout)."""
         if 'login' in self.manager.screen_names:
             self.manager.current = 'login'
         else:
             print("Erro: tela 'login' não encontrada")
 
     def _on_profile_pic_touch(self, instance, touch):
-        if instance.collide_point(*touch.pos):
+        """
+        Manipula o evento de toque na imagem de perfil.
+        Se a imagem for tocada, navega para a tela 'perfil'.
+        """
+        if instance.collide_point(*touch.pos): # Verifica se as coordenadas do toque (`touch.pos`) estão dentro da área da imagem (`instance`).
             if 'perfil' in self.manager.screen_names:
                 self.manager.current = 'perfil'
             else:

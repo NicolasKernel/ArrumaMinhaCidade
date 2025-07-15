@@ -10,7 +10,7 @@
         "is_admin": false
     },
     {
-        "username": "TEST_USER",
+        "username": "TEST_USERRRRRRR",
         "email": "maria.silva@email.com",
         "telefone": "11987654321",
         "cpf": "ABC",
@@ -19,9 +19,9 @@
         "bairro": "Centro",
         "is_admin": false,
         "seguindo": [
-            "456DEF",
             "123ABC",
-            "077ZMP"
+            "077ZMP",
+            "456DEF"
         ]
     },
     {
