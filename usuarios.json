@@ -19,9 +19,17 @@
         "bairro": "Centro",
         "is_admin": false,
         "seguindo": [
-            "123ABC",
-            "077ZMP",
-            "456DEF"
+            "854OPT"
+        ],
+        "notificacoes": [
+            {
+                "title": "Buraco do Jackson",
+                "description": "Buraco gigante no joquei clube",
+                "address": "CEP: 77023-630",
+                "status": "Em análise",
+                "date": "21/07/2025 11:08",
+                "image": "images\\854OPT_images.jpg"
+            }
         ]
     },
     {

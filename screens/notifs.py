@@ -187,118 +187,139 @@ class NotifsScreen(Screen):
         Este método é chamado automaticamente pelo ScreenManager pouco antes da tela se tornar a tela atual.
         Ele é usado para carregar e exibir as notificações relevantes para o usuário logado.
         """
-        app = App.get_running_app() # Obtém a instância do aplicativo Kivy em execução para acessar dados globais (como o usuário logado).
-        usuario_nome = "Usuário" # Define um nome de usuário padrão.
-        if hasattr(app, "usuario_logado") and app.usuario_logado: # Verifica se existe um atributo 'usuario_logado' no objeto App e se ele não é nulo.
-            usuario_nome = app.usuario_logado.get("username", "Usuário") # Se houver um usuário logado, tenta obter o nome de usuário; caso contrário, mantém o padrão.
-        self.user_label.text = f'{usuario_nome}!' # Atualiza o texto do label de boas-vindas com o nome do usuário.
+        app = App.get_running_app()
+        usuario_nome = "Usuário"
+        if hasattr(app, "usuario_logado") and app.usuario_logado:
+            usuario_nome = app.usuario_logado.get("username", "Usuário")
+        self.user_label.text = f'{usuario_nome}'
 
-        self.notif_posts = [] # Inicializa uma lista vazia para armazenar as notificações a serem exibidas.
-        if app.usuario_logado and "seguindo" in app.usuario_logado: # Verifica se há um usuário logado e se ele tem uma lista de serviços "seguindo".
+        self.notif_posts = []
+        if app.usuario_logado and "seguindo" in app.usuario_logado:
             try:
-                # Tenta abrir e carregar o arquivo JSON que contém todos os serviços e suas atualizações.
                 with open("services_updates.json", "r", encoding="utf-8") as f:
-                    all_services = json.load(f) # Carrega o conteúdo JSON para um dicionário.
+                    all_services = json.load(f)
             except (FileNotFoundError, json.JSONDecodeError):
-                all_services = {} # Se o arquivo não for encontrado ou estiver corrompido, inicializa `all_services` como um dicionário vazio.
+                all_services = {}
 
-            # Itera sobre todos os serviços disponíveis no arquivo JSON.
             for service in all_services.values():
-                service_id = service.get("id") # Obtém o ID do serviço.
-                # Verifica se o ID do serviço existe e se o usuário logado está "seguindo" este serviço.
+                service_id = service.get("id")
                 if service_id and service_id in app.usuario_logado["seguindo"]:
-                    updates = service.get("updates", []) # Obtém a lista de atualizações para este serviço (se existir, caso contrário, uma lista vazia).
-                    # Itera sobre cada atualização dentro do serviço.
+                    updates = service.get("updates", [])
                     for update in updates:
-                        # Adiciona os detalhes da notificação (ID do serviço, título do serviço, texto da atualização, data da atualização) à lista `notif_posts`.
+                        # Adiciona também o campo 'cep' e 'solicitante' se existirem
                         self.notif_posts.append({
                             "id": service_id,
                             "title": service.get("title", ""),
                             "text": update.get("text", ""),
-                            "date": update.get("date", "")
+                            "date": update.get("date", ""),
+                            "cep": service.get("cep", "Não informado"),
+                            "solicitante": service.get("solicitante", "Não informado")
                         })
-        
-        # Ordena as notificações por data em ordem decrescente (as mais recentes primeiro).
+
         def parse_date(d):
-            """Função auxiliar para converter uma string de data/hora em um objeto datetime."""
             try:
-                return datetime.datetime.strptime(d, "%d/%m/%Y %H:%M") # Tenta analisar a data no formato "DD/MM/AAAA HH:MM".
+                return datetime.datetime.strptime(d, "%d/%m/%Y %H:%M")
             except Exception:
-                return datetime.datetime.min # Em caso de erro na análise, retorna a data mínima para que essas entradas fiquem no final.
-        self.notif_posts.sort(key=lambda x: parse_date(x.get("date", "")), reverse=True) # Ordena a lista `notif_posts` usando a função `parse_date` como chave de ordenação.
-        self.update_notifs(self.notif_posts) # Chama o método para exibir as notificações na interface.
+                return datetime.datetime.min
+        self.notif_posts.sort(key=lambda x: parse_date(x.get("date", "")), reverse=True)
+        self.update_notifs(self.notif_posts)
 
     def update_notifs(self, notif_posts):
         """
         Atualiza o layout que exibe as notificações, removendo as antigas e adicionando as novas.
+        Agora exibe também o CEP e o solicitante, se existirem.
         """
-        self.notif_layout.clear_widgets() # Remove todos os widgets (notificações) atualmente exibidos no `notif_layout`.
-        if not notif_posts: # Se a lista de notificações estiver vazia.
-            # Adiciona uma mensagem informando que não há notificações, mas apenas se a mensagem ainda não estiver lá.
+        self.notif_layout.clear_widgets()
+        if not notif_posts:
             if not any(isinstance(child, Label) and "aparecerão aqui" in child.text for child in self.notif_layout.children):
                 self.notif_layout.add_widget(Label(
-                    text="As notificações dos serviços que você segue aparecerão aqui.", # Texto da mensagem.
-                    font_size=16, # Tamanho da fonte.
-                    color=(0.5, 0.5, 0.5, 1), # Cor do texto cinza.
-                    size_hint_y=None, # Altura fixa.
+                    text="As notificações dos serviços que você segue aparecerão aqui.",
+                    font_size=16,
+                    color=(0.5, 0.5, 0.5, 1),
+                    size_hint_y=None,
                     height=40
                 ))
-            return # Sai da função, pois não há notificações para exibir além da mensagem.
+            return
 
-        # Itera sobre cada notificação na lista fornecida (`notif_posts`).
         for notif in notif_posts:
-            # Cria um BoxLayout horizontal para cada notificação individual.
             post = BoxLayout(
-                orientation='horizontal', # Widgets dentro deste BoxLayout serão organizados horizontalmente.
-                size_hint_y=None, # Altura fixa para cada notificação.
-                height=80, # Altura de cada "card" de notificação.
-                padding=[10, 5, 10, 5], # Preenchimento interno.
-                spacing=10 # Espaçamento entre os elementos dentro da notificação.
+                orientation='vertical',
+                size_hint_y=None,
+                height=100,
+                padding=[10, 5, 10, 5],
+                spacing=5
             )
-            # Desenha um fundo branco para cada "card" de notificação.
             with post.canvas.before:
-                Color(1, 1, 1, 1) # Cor branca.
-                post.post_rect = Rectangle(size=post.size, pos=post.pos) # Cria o retângulo de fundo.
-            # Vincula os eventos de `size` e `pos` do `post` para atualizar o retângulo de fundo.
+                Color(1, 1, 1, 1)
+                post.post_rect = Rectangle(size=post.size, pos=post.pos)
             post.bind(size=self._update_post_rect, pos=self._update_post_rect)
 
-            # Cria Labels para exibir os detalhes da notificação: ID, Título, Texto da Atualização e Data.
+            # Linha principal: ID, Título, Data
+            top_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=10)
             id_label = Label(
-                text=f'ID: {notif.get("id", "")}', # Exibe o ID do serviço. `get` com valor padrão evita erros se a chave não existir.
+                text=f'ID: {notif.get("id", "")}',
                 font_size=12,
                 color=(0, 0, 0, 1),
-                size_hint_x=0.2, # Ocupa 20% da largura do `post`.
-                halign='left', # Alinhamento horizontal à esquerda.
-                valign='middle' # Alinhamento vertical ao meio.
-            )
-            title_label = Label(
-                text=f'Título: {notif.get("title", "")}', # Exibe o título do serviço.
-                font_size=14,
-                color=(0, 0, 0, 1),
-                size_hint_x=0.3, # Ocupa 30% da largura.
+                size_hint_x=0.2,
                 halign='left',
                 valign='middle'
             )
-            update_label = Label(
-                text=f'Atualização: {notif.get("text", "")}', # Exibe o texto da atualização.
-                font_size=12,
+            title_label = Label(
+                text=f'Título: {notif.get("title", "")}',
+                font_size=14,
                 color=(0, 0, 0, 1),
-                size_hint_x=0.3, # Ocupa 30% da largura.
+                size_hint_x=0.5,
                 halign='left',
                 valign='middle'
             )
             date_label = Label(
-                text=f'Data: {notif.get("date", "")}', # Exibe a data da atualização.
+                text=f'Data: {notif.get("date", "")}',
                 font_size=12,
-                color=(0.5, 0.5, 0.5, 1), # Cor cinza.
-                size_hint_x=0.2, # Ocupa 20% da largura.
+                color=(0.5, 0.5, 0.5, 1),
+                size_hint_x=0.3,
                 halign='left',
                 valign='middle'
             )
-            # Vincula o `text_size` de cada label ao seu `size` para garantir que o texto se ajuste corretamente.
-            for lbl in [id_label, title_label, update_label, date_label]:
+            for lbl in [id_label, title_label, date_label]:
                 lbl.bind(size=lbl.setter('text_size'))
-                post.add_widget(lbl) # Adiciona cada label ao `post` (o BoxLayout da notificação individual).
+                top_row.add_widget(lbl)
+            post.add_widget(top_row)
+
+            # Linha de atualização
+            update_label = Label(
+                text=f'Atualização: {notif.get("text", "")}',
+                font_size=12,
+                color=(0, 0, 0, 1),
+                size_hint_y=None,
+                height=25,
+                halign='left',
+                valign='middle'
+            )
+            update_label.bind(size=update_label.setter('text_size'))
+            post.add_widget(update_label)
+
+            # Linha de CEP e Solicitante (se existirem)
+            info_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=25, spacing=10)
+            cep_label = Label(
+                text=f'CEP: {notif.get("cep", "Não informado")}',
+                font_size=12,
+                color=(0.3, 0.3, 0.3, 1),
+                size_hint_x=0.5,
+                halign='left',
+                valign='middle'
+            )
+            solicitante_label = Label(
+                text=f'Solicitante: {notif.get("solicitante", "Não informado")}',
+                font_size=12,
+                color=(0.3, 0.3, 0.3, 1),
+                size_hint_x=0.5,
+                halign='left',
+                valign='middle'
+            )
+            for lbl in [cep_label, solicitante_label]:
+                lbl.bind(size=lbl.setter('text_size'))
+                info_row.add_widget(lbl)
+            post.add_widget(info_row)
 
             self.notif_layout.add_widget(post) # Adiciona o `post` (o "card" de notificação) ao `notif_layout` principal.
 

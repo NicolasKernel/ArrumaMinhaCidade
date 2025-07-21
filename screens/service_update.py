@@ -226,92 +226,78 @@ class ServiceUpdateScreen(Screen):
     def set_update_data(self, update):
         """
         Define os dados da atualização de serviço a serem exibidos na tela.
-        Este método é chamado por outra tela (ex: a tela de listagem de serviços)
-        para passar os dados do serviço selecionado.
-        Carrega as atualizações históricas do arquivo JSON.
-
-        Args:
-            update (dict): Um dicionário contendo os dados do serviço.
+        Agora usa os campos reais do JSON: 'cep' no lugar de 'address' e mostra 'solicitante' se existir.
         """
-        self.update_data = update # Armazena os dados do serviço.
-        self.title_label.text = update['title'] # Define o título do serviço.
-        self.service_image.source = update['image'] # Define a imagem do serviço.
-        self.desc_label.text = update['description'] # Define a descrição.
-        self.address_label.text = f'Endereço: {update["address"]}' # Define o endereço.
-        self.status_label.text = f'Status: {update["status"]}' # Define o status.
-        self.date_label.text = f'Data: {update["date"]}' # Define a data.
-        self.status_spinner.text = update['status'] # Define o texto inicial do spinner com o status atual.
-        
-        self.admin_updates_layout.clear_widgets() # Limpa as atualizações antigas antes de carregar novas.
-        
+        self.update_data = update
+        self.title_label.text = update.get('title', '')
+        self.service_image.source = update.get('image', '')
+        self.desc_label.text = update.get('description', '')
+        # Mostra o CEP no lugar do endereço
+        self.address_label.text = f'CEP: {update.get("cep", "Não informado")}'
+        self.status_label.text = f'Status: {update.get("status", "")}'
+        self.date_label.text = f'Data: {update.get("date", "")}'
+        self.status_spinner.text = update.get('status', 'Em análise')
+
+        self.admin_updates_layout.clear_widgets()
+
         # Carrega todas as atualizações de serviços do arquivo JSON.
         try:
             with open(self.json_file, 'r') as f:
                 all_updates = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            # Se o arquivo não existir ou estiver vazio/corrompido, inicializa como um dicionário vazio.
             all_updates = {}
-        
-        # Garante que 'all_updates' seja um dicionário. Se não for (formato JSON antigo), reinicializa.
+
         if not isinstance(all_updates, dict):
             print(f"Erro: Formato inválido em {self.json_file}. Esperado dicionário, encontrado {type(all_updates)}.")
             all_updates = {}
-        
+
         # Obtém os dados do serviço específico pelo seu título.
         service_data = all_updates.get(self.update_data['title'], {})
-        
+
         # Se os dados do serviço forem uma lista (formato antigo), converte para o novo formato de dicionário.
         if isinstance(service_data, list):
             print(f"Convertendo formato antigo para {self.update_data['title']}.")
             service_data = {
-                'id': self.update_data.get('id', '000AAA'), # Mantém o ID ou usa um padrão.
+                'id': self.update_data.get('id', '000AAA'),
                 'title': self.update_data['title'],
                 'description': self.update_data.get('description', 'Descrição não disponível'),
                 'date': self.update_data.get('date', '01/01/2023'),
-                'address': self.update_data.get('address', 'Endereço não disponível'),
+                'cep': self.update_data.get('cep', 'Não informado'),
                 'image': self.update_data.get('image', os.path.join('images', 'default.png')),
                 'status': self.update_data.get('status', 'Em análise'),
                 'type': self.update_data.get('type', 'Serviço Geral'),
                 'last_update': self.update_data.get('last_update', '01/01/2023 00:00'),
-                'updates': service_data # As antigas atualizações (lista) são colocadas sob a chave 'updates'.
+                'updates': service_data
             }
-            all_updates[self.update_data['title']] = service_data # Atualiza no dicionário geral.
-            # Salva a nova estrutura convertida de volta no arquivo JSON.
+            all_updates[self.update_data['title']] = service_data
             with open(self.json_file, 'w') as f:
                 json.dump(all_updates, f, indent=4)
-        
-        # Obtém a lista de atualizações para o serviço atual.
+
         service_updates = service_data.get('updates', [])
-        
-        # Tenta ordenar as atualizações por data, da mais recente para a mais antiga.
+
         try:
             service_updates.sort(
-                key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y %H:%M'), # Converte a string de data para um objeto datetime para ordenação.
-                reverse=True # Ordem decrescente (mais recente primeiro).
+                key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y %H:%M'),
+                reverse=True
             )
         except (KeyError, ValueError) as e:
-            print(f"Erro ao ordenar atualizações: {e}") # Exibe erro se a chave 'date' estiver faltando ou o formato for inválido.
-        
-        # Exibe cada atualização no layout de atualizações do administrador.
+            print(f"Erro ao ordenar atualizações: {e}")
+
         for update in service_updates:
-            # Cria um layout vertical para cada atualização individual.
             update_layout = BoxLayout(
                 orientation='vertical',
                 size_hint_y=None,
-                height=80, # Altura fixa para cada bloco de atualização.
+                height=80,
                 padding=[5, 5, 5, 5],
                 spacing=5
             )
-            # Desenha um fundo branco para cada bloco de atualização.
             with update_layout.canvas.before:
-                Color(1, 1, 1, 1)  # Cor branca.
+                Color(1, 1, 1, 1)
                 update_layout.rect = Rectangle(size=update_layout.size, pos=update_layout.pos)
-            # Vincula o retângulo ao tamanho/posição do layout de atualização.
             update_layout.bind(size=self._update_update_rect, pos=self._update_update_rect)
 
-            # Label para o texto da atualização.
             update_label = Label(
-                text=update['text'], # Texto da atualização.
+                text=update['text'],
                 font_size=14,
                 color=(0, 0, 0, 1),
                 size_hint_y=None,
@@ -323,9 +309,8 @@ class ServiceUpdateScreen(Screen):
             update_label.bind(width=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
             update_layout.add_widget(update_label)
 
-            # Label para exibir o usuário e a data da atualização.
             meta_label = Label(
-                text=f'Por: {update["user"]} em {update["date"]}', # Exibe usuário e data.
+                text=f'Por: {update.get("user", "Administrador")} em {update.get("date", "")}',
                 font_size=12,
                 color=(0.5, 0.5, 0.5, 1),
                 size_hint_y=None,
@@ -337,7 +322,7 @@ class ServiceUpdateScreen(Screen):
             meta_label.bind(width=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
             update_layout.add_widget(meta_label)
 
-            self.admin_updates_layout.add_widget(update_layout) # Adiciona o bloco de atualização ao layout principal de atualizações.
+            self.admin_updates_layout.add_widget(update_layout)
 
     def update_status(self, instance, value):
         """
@@ -377,7 +362,7 @@ class ServiceUpdateScreen(Screen):
                 'title': service_title,
                 'description': self.update_data.get('description', 'Descrição não disponível'),
                 'date': self.update_data.get('date', '01/01/2023'),
-                'address': self.update_data.get('address', 'Endereço não disponível'),
+                'cep': self.update_data.get('cep', 'Não informado'),
                 'image': self.update_data.get('image', os.path.join('images', 'default.png')),
                 'status': value, # O novo status já está aqui.
                 'type': self.update_data.get('type', 'Serviço Geral'),
@@ -475,7 +460,7 @@ class ServiceUpdateScreen(Screen):
                     'title': service_title,
                     'description': self.update_data.get('description', 'Descrição não disponível'),
                     'date': self.update_data.get('date', '01/01/2023'),
-                    'address': self.update_data.get('address', 'Endereço não disponível'),
+                    'cep': self.update_data.get('cep', 'Não informado'),
                     'image': self.update_data.get('image', os.path.join('images', 'default.png')),
                     'status': self.update_data.get('status', 'Em análise'),
                     'type': self.update_data.get('type', 'Serviço Geral'),

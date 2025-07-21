@@ -18,6 +18,7 @@ import random # Importa o módulo random, para gerar números aleatórios.
 import string # Importa o módulo string, que contém constantes de string (letras, dígitos, etc.).
 import shutil # Importa o módulo shutil, que oferece operações de alto nível em arquivos e coleções de arquivos (usado para copiar arquivos).
 from tkinter import filedialog, Tk # Importa filedialog e Tk do módulo tkinter, para abrir uma janela de seleção de arquivos nativa do sistema operacional.
+from utils.service_validation import is_duplicate_service
 
 def resource_path(relative_path):
     """
@@ -187,35 +188,15 @@ class ServicesScreen(Screen):
         )
         form_layout.add_widget(self.description_input)
 
-        # Campo Endereço
-        form_layout.add_widget(Label(text='Endereço:', font_size=14, color=(0, 0, 0, 1), size_hint_y=None, height=30))
-        self.address_input = TextInput(
-            hint_text='Digite o endereço (ex: Rua Exemplo)',
+        # Campo CEP
+        form_layout.add_widget(Label(text='CEP:', font_size=14, color=(0, 0, 0, 1), size_hint_y=None, height=30))
+        self.cep_input = TextInput(
+            hint_text='Digite o CEP',
             multiline=False,
             size_hint_y=None,
             height=40
         )
-        form_layout.add_widget(self.address_input)
-
-        # Campo Número do Endereço
-        form_layout.add_widget(Label(text='Número do Endereço:', font_size=14, color=(0, 0, 0, 1), size_hint_y=None, height=30))
-        self.number_input = TextInput(
-            hint_text='Digite o número',
-            multiline=False,
-            size_hint_y=None,
-            height=40
-        )
-        form_layout.add_widget(self.number_input)
-
-        # Campo Bairro
-        form_layout.add_widget(Label(text='Bairro:', font_size=14, color=(0, 0, 0, 1), size_hint_y=None, height=30))
-        self.bairro_input = TextInput(
-            hint_text='Digite o bairro',
-            multiline=False,
-            size_hint_y=None,
-            height=40
-        )
-        form_layout.add_widget(self.bairro_input)
+        form_layout.add_widget(self.cep_input)
 
         # Campo Tipo de Serviço (Spinner)
         form_layout.add_widget(Label(text='Tipo de Serviço:', font_size=14, color=(0, 0, 0, 1), size_hint_y=None, height=30))
@@ -334,18 +315,17 @@ class ServicesScreen(Screen):
         """
         Coleta os dados do formulário, valida, gera um ID único, salva a imagem
         e adiciona o novo serviço ao arquivo JSON e à lista de serviços exibida na BlogScreen.
+        Agora também salva o nome do usuário que solicitou.
         """
-        service_id = self.generate_unique_id() # Gera um ID único para o novo serviço.
-        service_name = self.service_name_input.text.strip() # Obtém o nome do serviço (removendo espaços extras).
-        description = self.description_input.text.strip() # Obtém a descrição.
-        address = self.address_input.text.strip() # Obtém o endereço.
-        number = self.number_input.text.strip() # Obtém o número do endereço.
-        bairro = self.bairro_input.text.strip() # Obtém o bairro.
-        image_path = self.image_input.text.strip() # Obtém o caminho da imagem.
-        service_type = self.service_type_spinner.text.strip() # Obtém o tipo de serviço.
+        service_id = self.generate_unique_id()
+        service_name = self.service_name_input.text.strip()
+        description = self.description_input.text.strip()
+        cep = self.cep_input.text.strip()
+        image_path = self.image_input.text.strip()
+        service_type = self.service_type_spinner.text.strip()
 
         # Validação dos campos obrigatórios.
-        if not all([service_name, description, address, bairro, service_type != 'Selecione o tipo de serviço']):
+        if not all([service_name, description, cep, service_type != 'Selecione o tipo de serviço']):
             popup = Popup(
                 title='Erro',
                 content=Label(text='Por favor, preencha todos os campos obrigatórios, incluindo o tipo de serviço!'),
@@ -355,22 +335,30 @@ class ServicesScreen(Screen):
             popup.open()
             return
 
-        # Formata o endereço completo.
-        full_address = f"{address}, {number}, {bairro}"
+        # Validação de duplicidade de serviço (mesmo CEP e tipo)
+        if is_duplicate_service(cep, service_type, self.json_file):
+            popup = Popup(
+                title='Erro',
+                content=Label(text='Já existe um serviço com esse CEP e tipo cadastrado!'),
+                size_hint=(None, None),
+                size=(400, 200)
+            )
+            popup.open()
+            return
 
-        current_date = datetime.now().strftime('%d/%m/%Y') # Obtém a data atual formatada.
+        current_date = datetime.now().strftime('%d/%m/%Y')
 
         # Processa a imagem: copia para a pasta 'images' se um caminho válido for fornecido,
         # caso contrário, usa uma imagem padrão.
         if image_path and os.path.isfile(image_path):
-            images_dir = os.path.join(os.path.abspath("."), 'images') # Define o diretório de destino para imagens.
+            images_dir = os.path.join(os.path.abspath("."), 'images')
             if not os.path.exists(images_dir):
-                os.makedirs(images_dir) # Cria o diretório 'images' se ele não existir.
-            img_name = f"{service_id}_{os.path.basename(image_path)}" # Cria um nome único para a imagem (ID + nome original).
-            dest_path = os.path.join(images_dir, img_name) # Define o caminho completo de destino.
+                os.makedirs(images_dir)
+            img_name = f"{service_id}_{os.path.basename(image_path)}"
+            dest_path = os.path.join(images_dir, img_name)
             try:
-                shutil.copy(image_path, dest_path) # Copia o arquivo da imagem.
-                image_path = os.path.join('images', img_name) # Atualiza o caminho da imagem para o caminho relativo dentro do projeto.
+                shutil.copy(image_path, dest_path)
+                image_path = os.path.join('images', img_name)
             except Exception as e:
                 popup = Popup(
                     title='Erro',
@@ -381,37 +369,44 @@ class ServicesScreen(Screen):
                 popup.open()
                 return
         else:
-            image_path = os.path.join('images', 'default.png') # Usa imagem padrão se nenhuma for selecionada ou for inválida.
+            image_path = os.path.join('images', 'default.png')
 
-        # Cria o dicionário com os dados do novo serviço.
+        # Obtém o nome do usuário logado
+        app = App.get_running_app()
+        usuario_nome = "Usuário"
+        if hasattr(app, "usuario_logado") and app.usuario_logado:
+            usuario_nome = app.usuario_logado.get("username", "Usuário")
+
+        # Cria o dicionário com os dados do novo serviço, incluindo o solicitante
         new_service = {
             'id': service_id,
             'title': service_name,
             'description': description,
             'date': current_date,
-            'address': full_address,
+            'cep': cep,
             'image': image_path,
-            'status': 'Em análise', # Status inicial padrão.
+            'status': 'Em análise',
             'type': service_type,
-            'last_update': f"{current_date} 00:00" # Data da última atualização (inicialmente a data de criação).
+            'last_update': f"{current_date} 00:00",
+            'solicitante': usuario_nome  # Novo campo: nome do usuário que solicitou
         }
 
         # Salva o novo serviço no arquivo JSON.
         try:
             with open(self.json_file, 'r') as f:
-                all_updates = json.load(f) # Carrega os serviços existentes.
+                all_updates = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            all_updates = {} # Inicializa se o arquivo não existir ou estiver vazio/corrompido.
+            all_updates = {}
 
-        all_updates[service_name] = new_service # Adiciona o novo serviço ao dicionário, usando o nome como chave.
+        all_updates[service_name] = new_service
 
         with open(self.json_file, 'w') as f:
-            json.dump(all_updates, f, indent=4) # Salva todos os serviços de volta no JSON, com formatação para legibilidade.
+            json.dump(all_updates, f, indent=4)
 
         # Adiciona o serviço à lista de atualizações na BlogScreen (se ela existir).
         if 'blog' in self.manager.screen_names:
             blog_screen = self.manager.get_screen('blog')
-            blog_screen.add_service(new_service) # Chama um método na BlogScreen para adicionar o novo serviço.
+            blog_screen.add_service(new_service)
 
         # Mostra um popup de sucesso.
         popup = Popup(
@@ -425,11 +420,9 @@ class ServicesScreen(Screen):
         # Limpa os campos do formulário após a criação do serviço.
         self.service_name_input.text = ''
         self.description_input.text = ''
-        self.address_input.text = ''
-        self.number_input.text = ''
-        self.bairro_input.text = ''
+        self.cep_input.text = ''
         self.image_input.text = ''
-        self.service_type_spinner.text = 'Selecione o tipo de serviço' # Reseta o spinner para o texto padrão.
+        self.service_type_spinner.text = 'Selecione o tipo de serviço'
 
     def on_pre_enter(self, *args):
         """

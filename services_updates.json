@@ -1,156 +1,21 @@
 {
-    "BuracoRuaPrincipal": {
-        "id": "077ZMP",
-        "title": "Buraco do jackson",
-        "description": "Buraco gigante no joquei clube.",
-        "date": "26/06/2025",
-        "address": "Rua Principal, 100, Centro",
-        "image": "images/default.png",
-        "status": "Em andamento",
-        "type": "Infraestrutura e Mobilidade",
-        "last_update": "27/06/2025 10:30",
-        "updates": [
-            {
-                "id": "077ZMP",
-                "text": "Equipe enviada para avaliacao do buraco.",
-                "user": "Administrador",
-                "date": "26/06/2025 09:00"
-            },
-            {
-                "id": "077ZMP",
-                "text": "Obra iniciada para tapar o buraco.",
-                "user": "Administrador",
-                "date": "27/06/2025 10:30"
-            }
-        ]
-    },
-    "IluminacaoPublica": {
-        "id": "123ABC",
-        "title": "Iluminacao Publica",
-        "description": "Poste de luz apagado ha dias deixando a rua escura.",
-        "date": "25/06/2025",
-        "address": "Avenida das Flores, 200, Jardim",
-        "image": "images/default.png",
-        "status": "Concluida",
-        "type": "Servicos Urbanos",
-        "last_update": "27/06/2025 08:00",
-        "updates": [
-            {
-                "id": "123ABC",
-                "text": "Solicitacao recebida, equipe sera enviada.",
-                "user": "Administrador",
-                "date": "25/06/2025 14:00"
-            },
-            {
-                "id": "123ABC",
-                "text": "Lampada trocada e iluminacao normalizada.",
-                "user": "Administrador",
-                "date": "27/06/2025 08:00"
-            }
-        ]
-    },
-    "ColetaLixo": {
-        "id": "456DEF",
-        "title": "Coleta de Lixo",
-        "description": "Lixo acumulado na esquina causando mau cheiro.",
-        "date": "24/06/2025",
-        "address": "Rua das Palmeiras, 50, Verde",
-        "image": "images/default.png",
-        "status": "Em analise",
-        "type": "Limpeza Urbana",
-        "last_update": "26/06/2025 16:00",
-        "updates": [
-            {
-                "id": "456DEF",
-                "text": "Solicitacao recebida, coleta agendada para amanha.",
-                "user": "Administrador",
-                "date": "25/06/2025 10:00"
-            },
-            {
-                "id": "456DEF",
-                "text": "Coleta realizada, local limpo.",
-                "user": "Administrador",
-                "date": "26/06/2025 16:00"
-            }
-        ]
-    },
-    "VazamentoAgua": {
-        "id": "789GHI",
-        "title": "Vazamento de Agua",
-        "description": "Vazamento em frente ao numero 100 desperdicando agua.",
-        "date": "23/06/2025",
-        "address": "Rua do Sol, 100, Luz",
-        "image": "images/default.png",
-        "status": "Em andamento",
-        "type": "Saneamento",
-        "last_update": "27/06/2025 11:00",
-        "updates": [
-            {
-                "id": "789GHI",
-                "text": "Equipe tecnica foi acionada para verificar o vazamento.",
-                "user": "Administrador",
-                "date": "23/06/2025 15:00"
-            },
-            {
-                "id": "789GHI",
-                "text": "Reparo iniciado, previsao de conclusao em 2 horas.",
-                "user": "Administrador",
-                "date": "27/06/2025 11:00"
-            }
-        ]
-    },
-    "ArvoreCaida": {
-        "id": "321JKL",
-        "title": "Arvore Caida",
-        "description": "Arvore ca\u00c3\u0192\u00c2\u00adda bloqueando a calcada e dificultandao a passagem.",
-        "date": "22/06/2025",
-        "address": "Rua das Acacias, 10, Primavera",
-        "image": "images/default.png",
-        "status": "Em andamento",
-        "type": "Meio Ambiente",
-        "last_update": "15/07/2025 10:37",
-        "updates": [
-            {
-                "id": "321JKL",
-                "text": "Equipe de remocao acionada.",
-                "user": "Administrador",
-                "date": "25/06/2025 09:00"
-            },
-            {
-                "id": "321JKL",
-                "text": "Arvore removida, calcada liberada.",
-                "user": "Administrador",
-                "date": "26/06/2025 13:30"
-            },
-            {
-                "id": "321JKL",
-                "text": "srygsfg4tserfserfsr",
-                "user": "Admin",
-                "date": "15/07/2025 10:37"
-            }
-        ]
-    },
-    "Buraco do jackson": {
-        "updates": [
-            {
-                "id": "077ZMP",
-                "text": "aaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "user": "Administrador",
-                "date": "15/07/2025 10:43"
-            }
-        ],
-        "status": "Em andamento",
-        "last_update": "15/07/2025 10:43"
-    },
-    "aaaa": {
-        "id": "544BQJ",
-        "title": "aaaa",
-        "description": "aaaaaa",
-        "date": "15/07/2025",
-        "address": "aaaaaaaaaaaaaa, aaaaaaaaaaaaaa, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "image": "images\\544BQJ_images.jpg",
+    "Buraco do Jackson": {
+        "id": "854OPT",
+        "title": "Buraco do Jackson",
+        "description": "Buraco gigante no joquei clube",
+        "date": "21/07/2025",
+        "cep": "77023-630",
+        "image": "images\\854OPT_images.jpg",
         "status": "Em an\u00e1lise",
-        "type": "Saneamento B\u00e1sico",
-        "last_update": "15/07/2025 00:00"
+        "type": "Infraestrutura e Mobilidade",
+        "last_update": "21/07/2025 11:08",
+        "updates": [
+            {
+                "id": "854OPT",
+                "text": "Boa noite",
+                "user": "Administrador",
+                "date": "21/07/2025 11:08"
+            }
+        ]
     }
 }

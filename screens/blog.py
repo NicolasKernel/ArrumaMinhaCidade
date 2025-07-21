@@ -305,64 +305,38 @@ class BlogScreen(Screen):
     def load_services_from_json(self):
         """
         Carrega todos os dados dos serviços do arquivo JSON (`self.json_file`)
-        para a lista `self.service_updates`.
-        
-        Inclui lógica para converter formatos de dados JSON antigos para o formato atual
-        esperado, garantindo compatibilidade.
+        para a lista `self.service_updates`, adaptando para os campos reais do JSON.
         """
         try:
             with open(self.json_file, 'r', encoding="utf-8") as f:
                 all_updates = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            # Se o arquivo não existir ou estiver corrompido, inicializa como vazio
             all_updates = {}
             return
 
-        # Verifica se o conteúdo do JSON é um dicionário (formato esperado)
         if not isinstance(all_updates, dict):
             print(f"Erro: Formato inválido em {self.json_file}. Obtendo o dicionário esperado.")
             return
 
-        self.service_updates = [] # Limpa a lista antes de carregar novamente
+        self.service_updates = []
         for service_title, service_data in all_updates.items():
-            # Lógica para converter o formato antigo (lista de updates) para o novo (dicionário completo de serviço)
-            if isinstance(service_data, list):
-                print(f"Convertendo formato antigo para {service_title}.")
-                # Cria um dicionário de serviço com dados padrão e as atualizações existentes
-                service_data = {
-                    'id': '000AAA', # ID padrão, idealmente deveria ser único e gerado
-                    'title': service_title,
-                    'description': 'Descrição não disponível',
-                    'date': '01/01/2023',
-                    'address': 'Endereço não disponível',
-                    'image': os.path.join('images', 'default.png'), # Imagem padrão
-                    'status': 'Em análise',
-                    'type': 'Serviço Geral',
-                    'last_update': '01/01/2023 00:00',
-                    'updates': service_data
-                }
-                all_updates[service_title] = service_data # Atualiza o dicionário principal
-                # Salva o arquivo JSON com o novo formato para persistência
-                with open(self.json_file, 'w', encoding="utf-8") as f:
-                    json.dump(all_updates, f, indent=4, ensure_ascii=False)
-
             # Garante que todos os campos necessários estejam presentes no dicionário de serviço,
             # fornecendo valores padrão se ausentes.
             service = {
                 'id': service_data.get('id', '000AAA'),
-                'title': service_title,
+                'title': service_data.get('title', service_title),
                 'description': service_data.get('description', 'Descrição não disponível'),
                 'date': service_data.get('date', '01/01/2023'),
-                'address': service_data.get('address', 'Endereço não disponível'),
+                'cep': service_data.get('cep', 'Não informado'),  # Usa o campo cep
                 'image': service_data.get('image', resource_path(os.path.join('resources', 'default.png'))),
                 'status': service_data.get('status', 'Em análise'),
                 'type': service_data.get('type', 'Serviço Geral'),
                 'last_update': service_data.get('last_update', f"{service_data.get('date', '01/01/2023')} 00:00"),
+                'solicitante': service_data.get('solicitante', 'Não informado'),  # Novo campo opcional
                 'updates': service_data.get('updates', [])
             }
-            self.service_updates.append(service) # Adiciona o serviço à lista
+            self.service_updates.append(service)
 
-        # Atualiza a exibição dos posts na interface com os serviços carregados
         self.update_posts(self.service_updates)
 
     def add_service(self, new_service):
@@ -469,8 +443,8 @@ class BlogScreen(Screen):
             text_layout.add_widget(type_label)
 
             # Label para o endereço do serviço
-            address_label = Label(
-                text=f'Endereço: {update["address"]}',
+            cep_label = Label(
+                text=f'CEP: {update.get("cep", "Não informado")}',
                 font_size=12,
                 color=(0.5, 0.5, 0.5, 1),
                 size_hint_y=None,
@@ -479,8 +453,23 @@ class BlogScreen(Screen):
                 valign='middle',
                 text_size=(None, None)
             )
-            address_label.bind(size=address_label.setter('text_size'))
-            text_layout.add_widget(address_label)
+            cep_label.bind(size=cep_label.setter('text_size'))
+            text_layout.add_widget(cep_label)
+
+            # Opcional: mostrar o solicitante, se existir
+            if update.get("solicitante"):
+                solicitante_label = Label(
+                    text=f'Solicitante: {update["solicitante"]}',
+                    font_size=12,
+                    color=(0.5, 0.5, 0.5, 1),
+                    size_hint_y=None,
+                    height=30,
+                    halign='left',
+                    valign='middle',
+                    text_size=(None, None)
+                )
+                solicitante_label.bind(size=solicitante_label.setter('text_size'))
+                text_layout.add_widget(solicitante_label)
 
             # Label para o status do serviço
             status_label = Label(
@@ -688,9 +677,6 @@ class BlogScreen(Screen):
         """Navega para a tela de Login."""
         self.manager.current = 'login'
 
-    def go_to_notifs(self, instance):
-        """Navega para a tela de Notificações."""
-        self.manager.current = 'notifs'
 
     def go_to_profile(self, instance):
         """Navega para a tela de Perfil."""
@@ -699,6 +685,11 @@ class BlogScreen(Screen):
     def go_to_blog(self, instance):
         """Navega para a tela do Blog (a tela atual)."""
         self.manager.current = 'blog'
+
+    def go_to_notifs(self, instance):
+         """Navega para a tela de Notificações."""
+         if 'notifications' in self.manager.screen_names:
+              self.manager.current = 'notifications'
 
     def go_to_services(self, instance):
         """Navega para a tela de Solicitação de Serviços."""
